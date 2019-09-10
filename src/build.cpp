@@ -51,14 +51,14 @@ struct video_generator : generator {
         for (int scaleIdx = 0; scaleIdx < NUM_SCALES; scaleIdx++) {
             if (scaleIdx < 10) {
                 for (int noteIdx = 0; noteIdx < NUM_FREQS; noteIdx++) {
-                    m.frequency[scaleIdx * NUM_SCALES + noteIdx] = start_freq * (noteIdx + 1) * (scaleIdx + 1);
+                    m.frequency[scaleIdx * NUM_FREQS + noteIdx] = start_freq * (noteIdx + 1) * (scaleIdx + 1);
                 }
             } else {
                 for (int noteIdx = 0; noteIdx < 11; noteIdx++) {
-                    m.frequency[scaleIdx * NUM_SCALES + noteIdx] = 15729 + noteIdx;
+                    m.frequency[scaleIdx * NUM_FREQS + noteIdx] = 15729 + noteIdx;
                 }
                 for (int noteIdx = 11; noteIdx < NUM_FREQS; noteIdx++) {
-                    m.frequency[scaleIdx * NUM_SCALES + noteIdx] = 31463 + noteIdx;
+                    m.frequency[scaleIdx * NUM_FREQS + noteIdx] = 31463 + noteIdx;
                 }
             }
         }
@@ -142,6 +142,8 @@ struct bpre_filter : filter {
         v.push_back(gain_adj);
         v.push_back(filt->val[2]);
         v.push_back(filt->val[1]);
+
+        std::cout << frequency << " " << gain_adj << " " << filt->val[2] << " " << filt->val[1] << std::endl;
 
         return v;
 
