@@ -68,6 +68,118 @@ struct video_generator : generator {
 
 };
 
+struct bp_generator : generator {
+
+	double start_freq=32.7031956626; //C1
+
+   	double BP_intervals[14] = {
+        1, 
+        27.0/25, 
+        25.0/21.0, 
+        9.0/7.0, 
+        7.0/5.0, 
+        75.0/49.0, 
+        5.0/3.0, 
+        9.0/5.0, 
+        49.0/25.0, 
+        15.0/7.0, 
+        7.0/3.0, 
+        63.0/25.0, 
+        25.0/9.0, 
+        3
+    };
+
+   	std::string BP_intervals_str[14] = {
+        "C", 
+        "Db", 
+        "D", 
+        "E", 
+        "F", 
+        "Gb", 
+        "G", 
+        "H", 
+        "Jb", 
+        "J", 
+        "A", 
+        "Bb", 
+        "B", 
+        "C"
+    };
+
+
+    scale generateScale() {
+
+        scale m;
+        m.classname = "bohlenppierce";
+        m.name = "Bohlen Pierce";
+        m.description = "The Bohlen Pierce scale is derived from 13 divisions of a 'tritave' - a frequency ratio of 3:1, compared to the octave ratio of 2:1. Here the scale consists of various intervals taken from an justly intonation scale.";
+        m.scalename = {
+            "C, E, H, A; C1-",
+            "C, E, H, Bb; C1-",
+            "C, F, G, A; C1-",
+            "C, F, H, J; C1-",
+            "C, F, H, A; C1-",
+            "C, F, H, Bb; C1-",
+            "C, G, H, A; C1-",
+            "C, G, H, Bb; C1-",
+            "C, G, A, Bb; C1-",
+            "C, G, Jb, B; C1-",
+            "C, Gb, J, B; C1-"
+        };
+
+        double n_intervals[NUM_SCALES][3] = { 
+            { BP_intervals[3], BP_intervals[7],  BP_intervals[10] },
+            { BP_intervals[3], BP_intervals[7],  BP_intervals[11] },
+            { BP_intervals[4], BP_intervals[6],  BP_intervals[10] },
+            { BP_intervals[4], BP_intervals[7],  BP_intervals[9] },
+            { BP_intervals[4], BP_intervals[7],  BP_intervals[10] },
+            { BP_intervals[4], BP_intervals[7],  BP_intervals[11] },
+            { BP_intervals[6], BP_intervals[7],  BP_intervals[10] },
+            { BP_intervals[6], BP_intervals[7],  BP_intervals[11] },
+            { BP_intervals[6], BP_intervals[10], BP_intervals[11] },
+            { BP_intervals[6], BP_intervals[8],  BP_intervals[12] },
+            { BP_intervals[5], BP_intervals[9],  BP_intervals[12] }
+        };
+
+        std::string n_intervals_str[NUM_SCALES][3] = { 
+            { BP_intervals_str[3], BP_intervals_str[7],  BP_intervals_str[10] },
+            { BP_intervals_str[3], BP_intervals_str[7],  BP_intervals_str[11] },
+            { BP_intervals_str[4], BP_intervals_str[6],  BP_intervals_str[10] },
+            { BP_intervals_str[4], BP_intervals_str[7],  BP_intervals_str[9] },
+            { BP_intervals_str[4], BP_intervals_str[7],  BP_intervals_str[10] },
+            { BP_intervals_str[4], BP_intervals_str[7],  BP_intervals_str[11] },
+            { BP_intervals_str[6], BP_intervals_str[7],  BP_intervals_str[10] },
+            { BP_intervals_str[6], BP_intervals_str[7],  BP_intervals_str[11] },
+            { BP_intervals_str[6], BP_intervals_str[10], BP_intervals_str[11] },
+            { BP_intervals_str[6], BP_intervals_str[8],  BP_intervals_str[12] },
+            { BP_intervals_str[5], BP_intervals_str[9],  BP_intervals_str[12] }
+        };
+
+        for (int scaleIdx = 0; scaleIdx < NUM_SCALES; scaleIdx++) {
+            m.frequency[scaleIdx * NUM_FREQS + 0] = start_freq;
+            m.notename[scaleIdx * NUM_FREQS + 0]  = BP_intervals_str[0];
+
+            m.frequency[scaleIdx * NUM_FREQS + 1] = m.frequency[scaleIdx * NUM_FREQS + 0] * n_intervals[scaleIdx][0];
+            m.notename[scaleIdx * NUM_FREQS + 1]  = n_intervals_str[scaleIdx][0];
+
+            m.frequency[scaleIdx * NUM_FREQS + 2] = m.frequency[scaleIdx * NUM_FREQS + 0] * n_intervals[scaleIdx][1];
+            m.notename[scaleIdx * NUM_FREQS + 2]  = n_intervals_str[scaleIdx][1];
+
+            m.frequency[scaleIdx * NUM_FREQS + 3] = m.frequency[scaleIdx * NUM_FREQS + 0] * n_intervals[scaleIdx][2];
+            m.notename[scaleIdx * NUM_FREQS + 3]  = n_intervals_str[scaleIdx][2];
+
+            for (int i = 4; i < 21; i++) {
+                m.frequency[scaleIdx * NUM_FREQS + i] = m.frequency[scaleIdx * NUM_FREQS + i - 4] * 3; //tritave
+                m.notename[scaleIdx * NUM_FREQS + i]  = m.notename[scaleIdx * NUM_FREQS + i - 4];
+            }
+        }
+
+        return m;
+    };
+
+};
+
+
 struct filter {
 
     double frequencyCut = 20000.0;
@@ -157,13 +269,18 @@ struct bpre_filter : filter {
 
 int main() {
 
-    video_generator video_g = {};
-    bpre_filter filter = {};
+    bp_generator g = {};
+    maxq_filter f = {};
+    int i = 1;
 
-    scale video_s = video_g.generateScale();
+    scale s = g.generateScale();
 
-    for (auto f: video_s.frequency) {
-        std::vector<double> c = filter.generateCoeffs(f);
+    for (auto freq: s.notename) {
+        std::cout << std::to_string(i) << " "<<  freq << std::endl;
+        if (i++ % 21 == 0) {
+            std::cout << "-- " << std::endl;
+        }
+        // std::vector<double> c = f.generateCoeffs(freq);
     }
 
 }
