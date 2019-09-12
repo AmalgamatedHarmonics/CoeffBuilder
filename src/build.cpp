@@ -70,13 +70,45 @@ struct video_generator : generator {
 
 };
 
-struct bp_generator : generator {
+struct interval_generator : generator {
 
-	double start_freq=32.7031956626; //C1
-    double octave = 3.0;
+    virtual double octave() { return 2.0; }
+
+    void generateFrequencies(scale &m, std::vector<double> n_intervals[NUM_SCALES], std::vector<double> startFrequencies) {
+
+        for (int scaleIdx = 0; scaleIdx < NUM_SCALES; scaleIdx++) {
+            for (int noteIdx = 0; noteIdx < n_intervals[scaleIdx].size(); noteIdx++ ) {
+                m.frequency[scaleIdx * NUM_FREQS + noteIdx] = n_intervals[scaleIdx][noteIdx] * startFrequencies[scaleIdx];
+            }
+
+            for (int i =  n_intervals[scaleIdx].size(); i < NUM_FREQS; i++) {
+                m.frequency[scaleIdx * NUM_FREQS + i] = m.frequency[scaleIdx * NUM_FREQS + i - n_intervals[scaleIdx].size()] * octave();
+            }
+        }
+    }
+
+    void generateNames(scale &m, std::vector<std::string> n_intervals_str[NUM_SCALES]) {
+
+        for (int scaleIdx = 0; scaleIdx < NUM_SCALES; scaleIdx++) {
+            for (int noteIdx = 0; noteIdx < n_intervals_str[scaleIdx].size(); noteIdx++ ) {
+                m.notename[scaleIdx * NUM_FREQS + noteIdx]  = n_intervals_str[scaleIdx][noteIdx];
+            }
+
+            for (int i =  n_intervals_str[scaleIdx].size(); i < NUM_FREQS; i++) {
+                m.notename[scaleIdx * NUM_FREQS + i]  = m.notename[scaleIdx * NUM_FREQS + i - n_intervals_str[scaleIdx].size()];
+            }
+        }
+    }
+
+};
+
+
+struct bp_generator : interval_generator {
+
+    virtual double octave() { return 3.0; }
 
    	double BP_intervals[14] = {
-        1, 
+        1.0, 
         27.0/25, 
         25.0/21.0, 
         9.0/7.0, 
@@ -89,7 +121,7 @@ struct bp_generator : generator {
         7.0/3.0, 
         63.0/25.0, 
         25.0/9.0, 
-        3
+        3.0
     };
 
    	std::string BP_intervals_str[14] = {
@@ -108,6 +140,37 @@ struct bp_generator : generator {
         "B", 
         "C"
     };
+
+    std::vector<double> n_intervals[NUM_SCALES] = { 
+        { BP_intervals[0], BP_intervals[3], BP_intervals[7],  BP_intervals[10] },
+        { BP_intervals[0], BP_intervals[3], BP_intervals[7],  BP_intervals[11] },
+        { BP_intervals[0], BP_intervals[4], BP_intervals[6],  BP_intervals[10] },
+        { BP_intervals[0], BP_intervals[4], BP_intervals[7],  BP_intervals[9] },
+        { BP_intervals[0], BP_intervals[4], BP_intervals[7],  BP_intervals[10] },
+        { BP_intervals[0], BP_intervals[4], BP_intervals[7],  BP_intervals[11] },
+        { BP_intervals[0], BP_intervals[6], BP_intervals[7],  BP_intervals[10] },
+        { BP_intervals[0], BP_intervals[6], BP_intervals[7],  BP_intervals[11] },
+        { BP_intervals[0], BP_intervals[6], BP_intervals[10], BP_intervals[11] },
+        { BP_intervals[0], BP_intervals[6], BP_intervals[8],  BP_intervals[12] },
+        { BP_intervals[0], BP_intervals[5], BP_intervals[9],  BP_intervals[12] }
+    };
+
+    std::vector<std::string> n_intervals_str[NUM_SCALES] = { 
+        { BP_intervals_str[0], BP_intervals_str[3], BP_intervals_str[7],  BP_intervals_str[10] },
+        { BP_intervals_str[0], BP_intervals_str[3], BP_intervals_str[7],  BP_intervals_str[11] },
+        { BP_intervals_str[0], BP_intervals_str[4], BP_intervals_str[6],  BP_intervals_str[10] },
+        { BP_intervals_str[0], BP_intervals_str[4], BP_intervals_str[7],  BP_intervals_str[9] },
+        { BP_intervals_str[0], BP_intervals_str[4], BP_intervals_str[7],  BP_intervals_str[10] },
+        { BP_intervals_str[0], BP_intervals_str[4], BP_intervals_str[7],  BP_intervals_str[11] },
+        { BP_intervals_str[0], BP_intervals_str[6], BP_intervals_str[7],  BP_intervals_str[10] },
+        { BP_intervals_str[0], BP_intervals_str[6], BP_intervals_str[7],  BP_intervals_str[11] },
+        { BP_intervals_str[0], BP_intervals_str[6], BP_intervals_str[10], BP_intervals_str[11] },
+        { BP_intervals_str[0], BP_intervals_str[6], BP_intervals_str[8],  BP_intervals_str[12] },
+        { BP_intervals_str[0], BP_intervals_str[5], BP_intervals_str[9],  BP_intervals_str[12] }
+    };
+
+
+    std::vector<double> startFrequencies {std::vector<double>(11, 32.7031956626)}; // C1
 
     scale generateScale() {
 
@@ -129,137 +192,49 @@ struct bp_generator : generator {
             "C, Gb, J, B; C1-"
         };
 
-        std::vector<double> n_intervals[NUM_SCALES] = { 
-            { BP_intervals[0], BP_intervals[3], BP_intervals[7],  BP_intervals[10] },
-            { BP_intervals[0], BP_intervals[3], BP_intervals[7],  BP_intervals[11] },
-            { BP_intervals[0], BP_intervals[4], BP_intervals[6],  BP_intervals[10] },
-            { BP_intervals[0], BP_intervals[4], BP_intervals[7],  BP_intervals[9] },
-            { BP_intervals[0], BP_intervals[4], BP_intervals[7],  BP_intervals[10] },
-            { BP_intervals[0], BP_intervals[4], BP_intervals[7],  BP_intervals[11] },
-            { BP_intervals[0], BP_intervals[6], BP_intervals[7],  BP_intervals[10] },
-            { BP_intervals[0], BP_intervals[6], BP_intervals[7],  BP_intervals[11] },
-            { BP_intervals[0], BP_intervals[6], BP_intervals[10], BP_intervals[11] },
-            { BP_intervals[0], BP_intervals[6], BP_intervals[8],  BP_intervals[12] },
-            { BP_intervals[0], BP_intervals[5], BP_intervals[9],  BP_intervals[12] }
-        };
-
-        std::vector<std::string> n_intervals_str[NUM_SCALES] = { 
-            { BP_intervals_str[0], BP_intervals_str[3], BP_intervals_str[7],  BP_intervals_str[10] },
-            { BP_intervals_str[0], BP_intervals_str[3], BP_intervals_str[7],  BP_intervals_str[11] },
-            { BP_intervals_str[0], BP_intervals_str[4], BP_intervals_str[6],  BP_intervals_str[10] },
-            { BP_intervals_str[0], BP_intervals_str[4], BP_intervals_str[7],  BP_intervals_str[9] },
-            { BP_intervals_str[0], BP_intervals_str[4], BP_intervals_str[7],  BP_intervals_str[10] },
-            { BP_intervals_str[0], BP_intervals_str[4], BP_intervals_str[7],  BP_intervals_str[11] },
-            { BP_intervals_str[0], BP_intervals_str[6], BP_intervals_str[7],  BP_intervals_str[10] },
-            { BP_intervals_str[0], BP_intervals_str[6], BP_intervals_str[7],  BP_intervals_str[11] },
-            { BP_intervals_str[0], BP_intervals_str[6], BP_intervals_str[10], BP_intervals_str[11] },
-            { BP_intervals_str[0], BP_intervals_str[6], BP_intervals_str[8],  BP_intervals_str[12] },
-            { BP_intervals_str[0], BP_intervals_str[5], BP_intervals_str[9],  BP_intervals_str[12] }
-        };
-
-        for (int scaleIdx = 0; scaleIdx < NUM_SCALES; scaleIdx++) {
-            for (int noteIdx = 0; noteIdx < n_intervals[scaleIdx].size(); noteIdx++ ) {
-                m.frequency[scaleIdx * NUM_FREQS + noteIdx] = n_intervals[scaleIdx][noteIdx] * start_freq;
-                m.notename[scaleIdx * NUM_FREQS + noteIdx]  = n_intervals_str[scaleIdx][noteIdx];
-            }
-
-            for (int i =  n_intervals[scaleIdx].size(); i < NUM_FREQS; i++) {
-                m.frequency[scaleIdx * NUM_FREQS + i] = m.frequency[scaleIdx * NUM_FREQS + i - n_intervals[scaleIdx].size()] * octave; //tritave
-                m.notename[scaleIdx * NUM_FREQS + i]  = m.notename[scaleIdx * NUM_FREQS + i - n_intervals[scaleIdx].size()];
-            }
-        }
+        generateFrequencies(m, n_intervals, startFrequencies);
+        generateNames(m, n_intervals_str);
 
         return m;
+
     };
 
 };
 
-struct gamelan_generator : generator {
-
-	double start_freq=32.7031956626; //C1
-
-    // if (scale_i<=1){
-    //     sprintf(interval_string[0],"gamelan_5note1");
-    //     sprintf(interval_string[1],"gamelan_5note2");
-    //     freq0=start_freq;
-    //     if (scale_i & 1) freq0=freq0 * 16;
-
-    //     freqs[0]=freq0;
-    //     freqs[1]=freq0*n_intervals[0][0];
-    //     freqs[2]=freq0*n_intervals[0][1];
-    //     freqs[3]=freq0*n_intervals[0][2];
-    //     freqs[4]=freq0*n_intervals[0][3];
-    //     for (i=5;i<21;i++){
-    //         freqs[i]=freqs[i-5]*2.0;
-    //     }
-    // }
-
-    // if (scale_i>1 && scale_i<=4){
-    //     sprintf(interval_string[2],"gamelan_7note1");
-    //     sprintf(interval_string[3],"gamelan_7note2");
-    //     sprintf(interval_string[4],"gamelan_7note3");
-    //     freq0=start_freq+scale_i;
-    //     if (scale_i==3) freq0=freq0 * 8;
-    //     if (scale_i==4) freq0=freq0 * 16;
-    //     freqs[0]=freq0;
-    //     freqs[1]=freq0*n_intervals[2][0];
-    //     freqs[2]=freq0*n_intervals[2][1];
-    //     freqs[3]=freq0*n_intervals[2][2];
-    //     freqs[4]=freq0*n_intervals[2][3];
-    //     freqs[5]=freq0*n_intervals[2][4];
-    //     freqs[6]=freq0*n_intervals[2][5];
-    //     for (i=7;i<21;i++){
-    //         freqs[i]=freqs[i-7]*2.0;
-    //     }
-    // }
-
-    // if (scale_i>4){ //5 6, 7 8, 9 10
-    //     sprintf(interval_string[scale_i],"gamelan_5of7_%d",scale_i-4);
-    //     freq0=start_freq;
-    //     if (!(scale_i & 1)) freq0=freq0 * 16;
-
-    //     freqs[0]=freq0+scale_i;
-    //     freqs[1]=freq0*n_intervals[scale_i][0];
-    //     freqs[2]=freq0*n_intervals[scale_i][1];
-    //     freqs[3]=freq0*n_intervals[scale_i][2];
-    //     freqs[4]=freq0*n_intervals[scale_i][3];
-    //     for (i=5;i<21;i++){
-    //         freqs[i]=freqs[i-5]*2.0;
-    //     }
-    // }
+struct gamelan_generator : interval_generator {
 
     scale generateScale() {
 
         scale m;
         m.classname = "gamelan";
         m.name = "Gamelan Pelog";
-        m.description = "Gamelan tunings in C";
+        m.description = "Gamelan tunings in C. ";
         m.scalename = {
-            "Java (5 notes) low",
-            "Java (5 notes) mid",
-            "Bali (7 notes) low",
-            "Bali (7 notes) mid",
-            "Bali (7 notes) high",
-            "Pelog, var1, low",
-            "Pelog, var1, high",
-            "Pelog, var2, low",
-            "Pelog, var2, high",
-            "Pelog, var3, low; pathet barang?", 
-            "Pelog, var3, high; pathet barang?"
+            "Java (5 notes) low, 5-TET",
+            "Bali (7 notes) low, 7-TET",
+            "Pelog, var1, low, pathet nem or lima? 7-TET",
+            "Pelog, var2, low, pathet nem or lima? 7-TET",
+            "Pelog, var3, low, pathet barang? 7-TET",
+            "Java (5 note) mid, 5-TET",
+            "Bali (7 note) mid, 7-TET",
+            "Bali (7 note) high, 7-TET",
+            "Pelog, var1, high, pathet nem or lima? 7-TET",
+            "Pelog, var2, high, pathet nem or lima? 7-TET",
+            "Pelog, var3, high, pathet barang? 7-TET"
         };
 
         std::vector<double> n_intervals[NUM_SCALES] = { 
-            { pow(2,1.0/5), pow(2,2.0/5), pow(2,3.0/5), pow(2,4.0/5) },
-            { pow(2,1.0/5), pow(2,2.0/5), pow(2,3.0/5), pow(2,4.0/5) },
-            { pow(2,1.0/7), pow(2,2.0/7), pow(2,3.0/7), pow(2,4.0/7), pow(2,5.0/7), pow(2,6.0/7) },
-            { pow(2,1.0/7), pow(2,2.0/7), pow(2,3.0/7), pow(2,4.0/7), pow(2,5.0/7), pow(2,6.0/7) },
-            { pow(2,1.0/7), pow(2,2.0/7), pow(2,3.0/7), pow(2,4.0/7), pow(2,5.0/7), pow(2,6.0/7) },
-            { pow(2,1.0/7), pow(2,2.0/7), pow(2,4.0/7), pow(2,5.0/7) }, // 1 2 3 5 6
-            { pow(2,1.0/7), pow(2,2.0/7), pow(2,4.0/7), pow(2,5.0/7) },
-            { pow(2,1.0/7), pow(2,3.0/7), pow(2,4.0/7), pow(2,6.0/7) }, // 1 2 4 5 7
-            { pow(2,1.0/7), pow(2,3.0/7), pow(2,4.0/7), pow(2,6.0/7) },
-            { pow(2,2.0/7), pow(2,3.0/7), pow(2,4.0/7), pow(2,5.0/7) }, // 1 3 4 5 6
-            { pow(2,2.0/7), pow(2,3.0/7), pow(2,4.0/7), pow(2,5.0/7) }
+            { 1.0, pow(2,1.0/5.0), pow(2,2.0/5.0), pow(2,3.0/5.0), pow(2,4.0/5.0) },                                    // gamelan_5note1 (Java)
+            { 1.0, pow(2,1.0/7.0), pow(2,2.0/7.0), pow(2,3.0/7.0), pow(2,4.0/7.0), pow(2,5.0/7.0), pow(2,6.0/7.0) },    // gamelan_7note1 (Bali)
+            { 1.0, pow(2,1.0/7.0), pow(2,2.0/7.0), pow(2,4.0/7.0), pow(2,5.0/7.0) },                                    // gamelan_5of7_1 1 2 3 5 6 (Pelog)
+            { 1.0, pow(2,1.0/7.0), pow(2,3.0/7.0), pow(2,4.0/7.0), pow(2,6.0/7.0) },                                    // gamelan_5of7_3 1 2 4 5 7 (Pelog)
+            { 1.0, pow(2,2.0/7.0), pow(2,3.0/7.0), pow(2,4.0/7.0), pow(2,5.0/7.0) },                                    // gamelan_5of7_5 1 3 4 5 6 (Pelog)
+            { 1.0, pow(2,1.0/5.0), pow(2,2.0/5.0), pow(2,3.0/5.0), pow(2,4.0/5.0) },                                    // gamelan_5note2 (Java)
+            { 1.0, pow(2,1.0/7.0), pow(2,2.0/7.0), pow(2,3.0/7.0), pow(2,4.0/7.0), pow(2,5.0/7.0), pow(2,6.0/7.0) },    // gamelan_7note2 (Bali)
+            { 1.0, pow(2,1.0/7.0), pow(2,2.0/7.0), pow(2,3.0/7.0), pow(2,4.0/7.0), pow(2,5.0/7.0), pow(2,6.0/7.0) },    // gamelan_7note3 (Bali)
+            { 1.0, pow(2,1.0/7.0), pow(2,2.0/7.0), pow(2,4.0/7.0), pow(2,5.0/7.0) },                                    // gamelan_5of7_2 (Pelog)
+            { 1.0, pow(2,1.0/7.0), pow(2,3.0/7.0), pow(2,4.0/7.0), pow(2,6.0/7.0) },                                    // gamelan_5of7_4 (Pelog)
+            { 1.0, pow(2,2.0/7.0), pow(2,3.0/7.0), pow(2,4.0/7.0), pow(2,5.0/7.0) }                                     // gamelan_5of7_6 (Pelog)
         };
 
         std::vector<std::string> n_intervals_str[NUM_SCALES] = { 
@@ -276,22 +251,26 @@ struct gamelan_generator : generator {
             // { BP_intervals_str[5], BP_intervals_str[9],  BP_intervals_str[12] }
         };
 
-        for (int scaleIdx = 0; scaleIdx < NUM_SCALES; scaleIdx++) {
-            m.frequency[scaleIdx * NUM_FREQS + 0] = start_freq;
+        std::vector<double> startFrequencies {
+            32.7031956626 + 0.0,            // gamelan_5note1
+            32.7031956626 + 2.0,            // gamelan_7note1
+            32.7031956626 + 5.0,            // gamelan_5of7_1 1 2 3 5 6
+            32.7031956626 + 7.0,            // gamelan_5of7_3 1 2 4 5 7
+            32.7031956626 + 9.0,            // gamelan_5of7_5 1 3 4 5 6
+            32.7031956626 * 16.0,           // gamelan_5note2
+            (32.7031956626 + 3.0) * 8.0,    // gamelan_7note2
+            (32.7031956626 + 4.0) * 16.0,   // gamelan_7note3
+            (32.7031956626 * 16.0) + 6.0,   // gamelan_5of7_2 
+            (32.7031956626 * 16.0) + 8.0,   // gamelan_5of7_4
+            (32.7031956626 * 16.0) + 10.0   // gamelan_5of7_6    
+        }; // C1
+        // To be honest, I really do not understand what 4ms is up to with all these offsets. 
+        // Maybe simulating the differences in gamelan tuning?
 
-            m.frequency[scaleIdx * NUM_FREQS + 1] = m.frequency[scaleIdx * NUM_FREQS + 0] * n_intervals[scaleIdx][0];
-
-            m.frequency[scaleIdx * NUM_FREQS + 2] = m.frequency[scaleIdx * NUM_FREQS + 0] * n_intervals[scaleIdx][1];
-
-            m.frequency[scaleIdx * NUM_FREQS + 3] = m.frequency[scaleIdx * NUM_FREQS + 0] * n_intervals[scaleIdx][2];
-
-            for (int i = 4; i < 21; i++) {
-                m.frequency[scaleIdx * NUM_FREQS + i] = m.frequency[scaleIdx * NUM_FREQS + i - 4] * 3.0; 
-                m.notename[scaleIdx * NUM_FREQS + i]  = m.notename[scaleIdx * NUM_FREQS + i - 4];
-            }
-        }
+        generateFrequencies(m, n_intervals, startFrequencies);
 
         return m;
+
     };
 
 };
@@ -373,8 +352,6 @@ struct bpre_filter : filter {
         v.push_back(filt->val[2]);
         v.push_back(filt->val[1]);
 
-        std::cout << frequency << " " << gain_adj << " " << filt->val[2] << " " << filt->val[1] << std::endl;
-
         return v;
 
     }
@@ -387,18 +364,20 @@ struct bpre_filter : filter {
 
 int main() {
 
-    bp_generator g = {};
+    gamelan_generator g = {};
     maxq_filter f = {};
-    int i = 1;
-
     scale s = g.generateScale();
 
     for (int idx = 0; idx < 231; idx++) {
 
-        std::cout << std::to_string(idx) << " " << s.notename[idx] << " " <<  std::to_string(s.frequency[idx]) << std::endl;
-        if (i++ % 21 == 0) {
-            std::cout << "-- " << std::endl;
+        int scale = idx / 21;
+
+        if (idx % 21 == 0) {
+            std::cout << "-- " << s.scalename[scale] <<  std::endl;
         }
+
+        std::cout << std::to_string(idx) << " " << s.notename[idx] << " " <<  std::to_string(s.frequency[idx]) << std::endl;
+
         // std::vector<double> c = f.generateCoeffs(freq);
     }
 
