@@ -27,6 +27,38 @@ struct generator {
     virtual scale generateScale() = 0;
 };
 
+struct interval_generator : generator {
+
+    virtual double octave() { return 2.0; }
+
+    void generateFrequencies(scale &m, std::vector<double> n_intervals[NUM_SCALES], std::vector<double> startFrequencies) {
+
+        for (int scaleIdx = 0; scaleIdx < NUM_SCALES; scaleIdx++) {
+            for (int noteIdx = 0; noteIdx < n_intervals[scaleIdx].size(); noteIdx++ ) {
+                m.frequency[scaleIdx * NUM_FREQS + noteIdx] = n_intervals[scaleIdx][noteIdx] * startFrequencies[scaleIdx];
+            }
+
+            for (int i =  n_intervals[scaleIdx].size(); i < NUM_FREQS; i++) {
+                m.frequency[scaleIdx * NUM_FREQS + i] = m.frequency[scaleIdx * NUM_FREQS + i - n_intervals[scaleIdx].size()] * octave();
+            }
+        }
+    }
+
+    void generateNames(scale &m, std::vector<std::string> n_intervals_str[NUM_SCALES]) {
+
+        for (int scaleIdx = 0; scaleIdx < NUM_SCALES; scaleIdx++) {
+            for (int noteIdx = 0; noteIdx < n_intervals_str[scaleIdx].size(); noteIdx++ ) {
+                m.notename[scaleIdx * NUM_FREQS + noteIdx]  = n_intervals_str[scaleIdx][noteIdx];
+            }
+
+            for (int i =  n_intervals_str[scaleIdx].size(); i < NUM_FREQS; i++) {
+                m.notename[scaleIdx * NUM_FREQS + i]  = m.notename[scaleIdx * NUM_FREQS + i - n_intervals_str[scaleIdx].size()];
+            }
+        }
+    }
+
+};
+
 struct video_generator : generator {
 
 	double start_freq = 59.94;
@@ -69,39 +101,6 @@ struct video_generator : generator {
     };
 
 };
-
-struct interval_generator : generator {
-
-    virtual double octave() { return 2.0; }
-
-    void generateFrequencies(scale &m, std::vector<double> n_intervals[NUM_SCALES], std::vector<double> startFrequencies) {
-
-        for (int scaleIdx = 0; scaleIdx < NUM_SCALES; scaleIdx++) {
-            for (int noteIdx = 0; noteIdx < n_intervals[scaleIdx].size(); noteIdx++ ) {
-                m.frequency[scaleIdx * NUM_FREQS + noteIdx] = n_intervals[scaleIdx][noteIdx] * startFrequencies[scaleIdx];
-            }
-
-            for (int i =  n_intervals[scaleIdx].size(); i < NUM_FREQS; i++) {
-                m.frequency[scaleIdx * NUM_FREQS + i] = m.frequency[scaleIdx * NUM_FREQS + i - n_intervals[scaleIdx].size()] * octave();
-            }
-        }
-    }
-
-    void generateNames(scale &m, std::vector<std::string> n_intervals_str[NUM_SCALES]) {
-
-        for (int scaleIdx = 0; scaleIdx < NUM_SCALES; scaleIdx++) {
-            for (int noteIdx = 0; noteIdx < n_intervals_str[scaleIdx].size(); noteIdx++ ) {
-                m.notename[scaleIdx * NUM_FREQS + noteIdx]  = n_intervals_str[scaleIdx][noteIdx];
-            }
-
-            for (int i =  n_intervals_str[scaleIdx].size(); i < NUM_FREQS; i++) {
-                m.notename[scaleIdx * NUM_FREQS + i]  = m.notename[scaleIdx * NUM_FREQS + i - n_intervals_str[scaleIdx].size()];
-            }
-        }
-    }
-
-};
-
 
 struct bp_generator : interval_generator {
 
@@ -208,7 +207,7 @@ struct gamelan_generator : interval_generator {
         scale m;
         m.classname = "gamelan";
         m.name = "Gamelan Pelog";
-        m.description = "Gamelan tunings in C. ";
+        m.description = "Gamelan tunings in C.";
         m.scalename = {
             "Java (5 notes) low, 5-TET",
             "Bali (7 notes) low, 7-TET",
@@ -275,12 +274,51 @@ struct gamelan_generator : interval_generator {
 
 };
 
+struct b296_generator : generator {
+
+    double b296_freqs[21]={20, 40, 60, 80, 100, 150, 250, 350, 500, 630,800,1000,1300,1600,2000,2600,3500,5000,8000,10000,20000};
+
+	double start_freq = 59.94;
+
+    scale generateScale() {
+        scale m;
+        m.classname = "buchla296";
+        m.name = "Buchla 296 EQ";
+        m.description = "Frequencies from the Buchla 296 EQ module. Each scale is shifted up 50 cents from previous scale.";
+        m.scalename = {
+            "20.000Hz",
+            "20.586Hz",
+            "21.189Hz",
+            "21.810Hz",
+            "22.449Hz",
+            "23.107Hz",
+            "23.794Hz",
+            "24.481Hz",
+            "25.198Hz",
+            "25.937Hz",
+            "26.697Hz"
+        };
+
+        for (int scaleIdx = 0; scaleIdx < NUM_SCALES; scaleIdx++) {
+    		double start_freq = pow(2, scaleIdx / 24.0); // freq increases with each scale
+            for (int noteIdx = 0; noteIdx < NUM_FREQS; noteIdx++) {
+                m.frequency[scaleIdx * NUM_FREQS + noteIdx] = start_freq * b296_freqs[noteIdx];
+            }
+        }
+
+        return m;
+
+    };
+
+};
 
 
 struct filter {
 
+    virtual std::string name() = 0;
+
     double frequencyCut = 20000.0;
-    bool frequencyCutEnabled = false;
+    bool frequencyCutEnabled = true;
     double lastValid = -1.0;
 
     // Must return coefficients corresponding to the filter-calibrated frequency.
@@ -312,6 +350,10 @@ struct maxq_filter : filter {
 
     int sampleRate = 96000;
 
+    std::string name() override {
+        return "maxq/" + std::to_string(sampleRate);
+    }
+
     std::vector<double> calculate(double frequency) override {
         std::vector<double> v;
         v.push_back(2.0 * PI * calibrateFrequency(frequency) / (double)sampleRate);
@@ -329,6 +371,10 @@ struct bpre_filter : filter {
     int Qval = 800;
   	double gain_q = 40;
     int sampleRate = 96000;
+
+    std::string name() override {
+        return "bpre/" + std::to_string(sampleRate) + "/" + std::to_string(Qval) + "/" + std::to_string(gain_q);
+    }
 
     std::vector<double> calculate(double frequency) override {
 
@@ -364,21 +410,75 @@ struct bpre_filter : filter {
 
 int main() {
 
-    gamelan_generator g = {};
-    maxq_filter f = {};
-    scale s = g.generateScale();
+    std::vector<generator *> generators;
+    std::vector<filter *> filters;
 
-    for (int idx = 0; idx < 231; idx++) {
+    video_generator video = {};
+    generators.push_back(&video);
 
-        int scale = idx / 21;
+    bp_generator bp = {};
+    generators.push_back(&bp);
 
-        if (idx % 21 == 0) {
-            std::cout << "-- " << s.scalename[scale] <<  std::endl;
+    gamelan_generator gamelan = {};
+    generators.push_back(&gamelan);
+
+    b296_generator b296 = {};
+    generators.push_back(&b296);
+
+    maxq_filter maxq48 = {};
+    maxq48.sampleRate = 48000;
+    filters.push_back(&maxq48);
+
+    maxq_filter maxq96 = {};
+    maxq96.sampleRate = 96000;
+    filters.push_back(&maxq96);
+
+    bpre_filter bpreLo48 = {};
+    bpreLo48.gain_q = 2.0;
+    bpreLo48.Qval = 2.0;
+    bpreLo48.sampleRate = 48000;
+    filters.push_back(&bpreLo48);
+
+    bpre_filter bpreLo96 = {};
+    bpreLo96.gain_q = 2.0;
+    bpreLo96.Qval = 2.0;
+    bpreLo96.sampleRate = 96000;
+    filters.push_back(&bpreLo96);
+
+    bpre_filter bpreHi48 = {};
+    bpreHi48.gain_q = 40.0;
+    bpreHi48.Qval = 800.0;
+    bpreHi48.sampleRate = 48000;
+    filters.push_back(&bpreHi48);
+
+    bpre_filter bpreHi96 = {};
+    bpreHi96.gain_q = 40.0;
+    bpreHi96.Qval = 800.0;
+    bpreHi96.sampleRate = 96000;
+    filters.push_back(&bpreHi96);
+
+    for (auto g: generators) {
+
+        scale s = g->generateScale();
+
+        for (int idx = 0; idx < 231; idx++) {
+
+            int scale = idx / 21;
+
+            if (idx % 21 == 0) {
+                std::cout << "-- " << s.scalename[scale] <<  std::endl;
+            }
+
+            std::cout << "note " << std::to_string(idx) << " " << s.notename[idx] << " " <<  std::to_string(s.frequency[idx]) << std::endl;
+
+            for (auto filt: filters) {
+                std::vector<double> coeffs = filt->generateCoeffs(s.frequency[idx]);
+                std::cout << filt->name();
+                for (double c: coeffs) {
+                    std::cout << " " << c;
+                }
+                std::cout << std::endl;
+            }
         }
-
-        std::cout << std::to_string(idx) << " " << s.notename[idx] << " " <<  std::to_string(s.frequency[idx]) << std::endl;
-
-        // std::vector<double> c = f.generateCoeffs(freq);
     }
-
 }
