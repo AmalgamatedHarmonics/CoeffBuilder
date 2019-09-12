@@ -3,6 +3,8 @@
 #include <array>
 #include <vector>
 
+#include <math.h>
+
 #include "fidlib.h"
 
 const int NUM_FREQS = 21;
@@ -71,6 +73,7 @@ struct video_generator : generator {
 struct bp_generator : generator {
 
 	double start_freq=32.7031956626; //C1
+    double octave = 3.0;
 
    	double BP_intervals[14] = {
         1, 
@@ -106,11 +109,10 @@ struct bp_generator : generator {
         "C"
     };
 
-
     scale generateScale() {
 
         scale m;
-        m.classname = "bohlenppierce";
+        m.classname = "bohlenpierce";
         m.name = "Bohlen Pierce";
         m.description = "The Bohlen Pierce scale is derived from 13 divisions of a 'tritave' - a frequency ratio of 3:1, compared to the octave ratio of 2:1. Here the scale consists of various intervals taken from an justly intonation scale.";
         m.scalename = {
@@ -127,49 +129,164 @@ struct bp_generator : generator {
             "C, Gb, J, B; C1-"
         };
 
-        double n_intervals[NUM_SCALES][3] = { 
-            { BP_intervals[3], BP_intervals[7],  BP_intervals[10] },
-            { BP_intervals[3], BP_intervals[7],  BP_intervals[11] },
-            { BP_intervals[4], BP_intervals[6],  BP_intervals[10] },
-            { BP_intervals[4], BP_intervals[7],  BP_intervals[9] },
-            { BP_intervals[4], BP_intervals[7],  BP_intervals[10] },
-            { BP_intervals[4], BP_intervals[7],  BP_intervals[11] },
-            { BP_intervals[6], BP_intervals[7],  BP_intervals[10] },
-            { BP_intervals[6], BP_intervals[7],  BP_intervals[11] },
-            { BP_intervals[6], BP_intervals[10], BP_intervals[11] },
-            { BP_intervals[6], BP_intervals[8],  BP_intervals[12] },
-            { BP_intervals[5], BP_intervals[9],  BP_intervals[12] }
+        std::vector<double> n_intervals[NUM_SCALES] = { 
+            { BP_intervals[0], BP_intervals[3], BP_intervals[7],  BP_intervals[10] },
+            { BP_intervals[0], BP_intervals[3], BP_intervals[7],  BP_intervals[11] },
+            { BP_intervals[0], BP_intervals[4], BP_intervals[6],  BP_intervals[10] },
+            { BP_intervals[0], BP_intervals[4], BP_intervals[7],  BP_intervals[9] },
+            { BP_intervals[0], BP_intervals[4], BP_intervals[7],  BP_intervals[10] },
+            { BP_intervals[0], BP_intervals[4], BP_intervals[7],  BP_intervals[11] },
+            { BP_intervals[0], BP_intervals[6], BP_intervals[7],  BP_intervals[10] },
+            { BP_intervals[0], BP_intervals[6], BP_intervals[7],  BP_intervals[11] },
+            { BP_intervals[0], BP_intervals[6], BP_intervals[10], BP_intervals[11] },
+            { BP_intervals[0], BP_intervals[6], BP_intervals[8],  BP_intervals[12] },
+            { BP_intervals[0], BP_intervals[5], BP_intervals[9],  BP_intervals[12] }
         };
 
-        std::string n_intervals_str[NUM_SCALES][3] = { 
-            { BP_intervals_str[3], BP_intervals_str[7],  BP_intervals_str[10] },
-            { BP_intervals_str[3], BP_intervals_str[7],  BP_intervals_str[11] },
-            { BP_intervals_str[4], BP_intervals_str[6],  BP_intervals_str[10] },
-            { BP_intervals_str[4], BP_intervals_str[7],  BP_intervals_str[9] },
-            { BP_intervals_str[4], BP_intervals_str[7],  BP_intervals_str[10] },
-            { BP_intervals_str[4], BP_intervals_str[7],  BP_intervals_str[11] },
-            { BP_intervals_str[6], BP_intervals_str[7],  BP_intervals_str[10] },
-            { BP_intervals_str[6], BP_intervals_str[7],  BP_intervals_str[11] },
-            { BP_intervals_str[6], BP_intervals_str[10], BP_intervals_str[11] },
-            { BP_intervals_str[6], BP_intervals_str[8],  BP_intervals_str[12] },
-            { BP_intervals_str[5], BP_intervals_str[9],  BP_intervals_str[12] }
+        std::vector<std::string> n_intervals_str[NUM_SCALES] = { 
+            { BP_intervals_str[0], BP_intervals_str[3], BP_intervals_str[7],  BP_intervals_str[10] },
+            { BP_intervals_str[0], BP_intervals_str[3], BP_intervals_str[7],  BP_intervals_str[11] },
+            { BP_intervals_str[0], BP_intervals_str[4], BP_intervals_str[6],  BP_intervals_str[10] },
+            { BP_intervals_str[0], BP_intervals_str[4], BP_intervals_str[7],  BP_intervals_str[9] },
+            { BP_intervals_str[0], BP_intervals_str[4], BP_intervals_str[7],  BP_intervals_str[10] },
+            { BP_intervals_str[0], BP_intervals_str[4], BP_intervals_str[7],  BP_intervals_str[11] },
+            { BP_intervals_str[0], BP_intervals_str[6], BP_intervals_str[7],  BP_intervals_str[10] },
+            { BP_intervals_str[0], BP_intervals_str[6], BP_intervals_str[7],  BP_intervals_str[11] },
+            { BP_intervals_str[0], BP_intervals_str[6], BP_intervals_str[10], BP_intervals_str[11] },
+            { BP_intervals_str[0], BP_intervals_str[6], BP_intervals_str[8],  BP_intervals_str[12] },
+            { BP_intervals_str[0], BP_intervals_str[5], BP_intervals_str[9],  BP_intervals_str[12] }
+        };
+
+        for (int scaleIdx = 0; scaleIdx < NUM_SCALES; scaleIdx++) {
+            for (int noteIdx = 0; noteIdx < n_intervals[scaleIdx].size(); noteIdx++ ) {
+                m.frequency[scaleIdx * NUM_FREQS + noteIdx] = n_intervals[scaleIdx][noteIdx] * start_freq;
+                m.notename[scaleIdx * NUM_FREQS + noteIdx]  = n_intervals_str[scaleIdx][noteIdx];
+            }
+
+            for (int i =  n_intervals[scaleIdx].size(); i < NUM_FREQS; i++) {
+                m.frequency[scaleIdx * NUM_FREQS + i] = m.frequency[scaleIdx * NUM_FREQS + i - n_intervals[scaleIdx].size()] * octave; //tritave
+                m.notename[scaleIdx * NUM_FREQS + i]  = m.notename[scaleIdx * NUM_FREQS + i - n_intervals[scaleIdx].size()];
+            }
+        }
+
+        return m;
+    };
+
+};
+
+struct gamelan_generator : generator {
+
+	double start_freq=32.7031956626; //C1
+
+    // if (scale_i<=1){
+    //     sprintf(interval_string[0],"gamelan_5note1");
+    //     sprintf(interval_string[1],"gamelan_5note2");
+    //     freq0=start_freq;
+    //     if (scale_i & 1) freq0=freq0 * 16;
+
+    //     freqs[0]=freq0;
+    //     freqs[1]=freq0*n_intervals[0][0];
+    //     freqs[2]=freq0*n_intervals[0][1];
+    //     freqs[3]=freq0*n_intervals[0][2];
+    //     freqs[4]=freq0*n_intervals[0][3];
+    //     for (i=5;i<21;i++){
+    //         freqs[i]=freqs[i-5]*2.0;
+    //     }
+    // }
+
+    // if (scale_i>1 && scale_i<=4){
+    //     sprintf(interval_string[2],"gamelan_7note1");
+    //     sprintf(interval_string[3],"gamelan_7note2");
+    //     sprintf(interval_string[4],"gamelan_7note3");
+    //     freq0=start_freq+scale_i;
+    //     if (scale_i==3) freq0=freq0 * 8;
+    //     if (scale_i==4) freq0=freq0 * 16;
+    //     freqs[0]=freq0;
+    //     freqs[1]=freq0*n_intervals[2][0];
+    //     freqs[2]=freq0*n_intervals[2][1];
+    //     freqs[3]=freq0*n_intervals[2][2];
+    //     freqs[4]=freq0*n_intervals[2][3];
+    //     freqs[5]=freq0*n_intervals[2][4];
+    //     freqs[6]=freq0*n_intervals[2][5];
+    //     for (i=7;i<21;i++){
+    //         freqs[i]=freqs[i-7]*2.0;
+    //     }
+    // }
+
+    // if (scale_i>4){ //5 6, 7 8, 9 10
+    //     sprintf(interval_string[scale_i],"gamelan_5of7_%d",scale_i-4);
+    //     freq0=start_freq;
+    //     if (!(scale_i & 1)) freq0=freq0 * 16;
+
+    //     freqs[0]=freq0+scale_i;
+    //     freqs[1]=freq0*n_intervals[scale_i][0];
+    //     freqs[2]=freq0*n_intervals[scale_i][1];
+    //     freqs[3]=freq0*n_intervals[scale_i][2];
+    //     freqs[4]=freq0*n_intervals[scale_i][3];
+    //     for (i=5;i<21;i++){
+    //         freqs[i]=freqs[i-5]*2.0;
+    //     }
+    // }
+
+    scale generateScale() {
+
+        scale m;
+        m.classname = "gamelan";
+        m.name = "Gamelan Pelog";
+        m.description = "Gamelan tunings in C";
+        m.scalename = {
+            "Java (5 notes) low",
+            "Java (5 notes) mid",
+            "Bali (7 notes) low",
+            "Bali (7 notes) mid",
+            "Bali (7 notes) high",
+            "Pelog, var1, low",
+            "Pelog, var1, high",
+            "Pelog, var2, low",
+            "Pelog, var2, high",
+            "Pelog, var3, low; pathet barang?", 
+            "Pelog, var3, high; pathet barang?"
+        };
+
+        std::vector<double> n_intervals[NUM_SCALES] = { 
+            { pow(2,1.0/5), pow(2,2.0/5), pow(2,3.0/5), pow(2,4.0/5) },
+            { pow(2,1.0/5), pow(2,2.0/5), pow(2,3.0/5), pow(2,4.0/5) },
+            { pow(2,1.0/7), pow(2,2.0/7), pow(2,3.0/7), pow(2,4.0/7), pow(2,5.0/7), pow(2,6.0/7) },
+            { pow(2,1.0/7), pow(2,2.0/7), pow(2,3.0/7), pow(2,4.0/7), pow(2,5.0/7), pow(2,6.0/7) },
+            { pow(2,1.0/7), pow(2,2.0/7), pow(2,3.0/7), pow(2,4.0/7), pow(2,5.0/7), pow(2,6.0/7) },
+            { pow(2,1.0/7), pow(2,2.0/7), pow(2,4.0/7), pow(2,5.0/7) }, // 1 2 3 5 6
+            { pow(2,1.0/7), pow(2,2.0/7), pow(2,4.0/7), pow(2,5.0/7) },
+            { pow(2,1.0/7), pow(2,3.0/7), pow(2,4.0/7), pow(2,6.0/7) }, // 1 2 4 5 7
+            { pow(2,1.0/7), pow(2,3.0/7), pow(2,4.0/7), pow(2,6.0/7) },
+            { pow(2,2.0/7), pow(2,3.0/7), pow(2,4.0/7), pow(2,5.0/7) }, // 1 3 4 5 6
+            { pow(2,2.0/7), pow(2,3.0/7), pow(2,4.0/7), pow(2,5.0/7) }
+        };
+
+        std::vector<std::string> n_intervals_str[NUM_SCALES] = { 
+            // { BP_intervals_str[3], BP_intervals_str[7],  BP_intervals_str[10] },
+            // { BP_intervals_str[3], BP_intervals_str[7],  BP_intervals_str[11] },
+            // { BP_intervals_str[4], BP_intervals_str[6],  BP_intervals_str[10] },
+            // { BP_intervals_str[4], BP_intervals_str[7],  BP_intervals_str[9] },
+            // { BP_intervals_str[4], BP_intervals_str[7],  BP_intervals_str[10] },
+            // { BP_intervals_str[4], BP_intervals_str[7],  BP_intervals_str[11] },
+            // { BP_intervals_str[6], BP_intervals_str[7],  BP_intervals_str[10] },
+            // { BP_intervals_str[6], BP_intervals_str[7],  BP_intervals_str[11] },
+            // { BP_intervals_str[6], BP_intervals_str[10], BP_intervals_str[11] },
+            // { BP_intervals_str[6], BP_intervals_str[8],  BP_intervals_str[12] },
+            // { BP_intervals_str[5], BP_intervals_str[9],  BP_intervals_str[12] }
         };
 
         for (int scaleIdx = 0; scaleIdx < NUM_SCALES; scaleIdx++) {
             m.frequency[scaleIdx * NUM_FREQS + 0] = start_freq;
-            m.notename[scaleIdx * NUM_FREQS + 0]  = BP_intervals_str[0];
 
             m.frequency[scaleIdx * NUM_FREQS + 1] = m.frequency[scaleIdx * NUM_FREQS + 0] * n_intervals[scaleIdx][0];
-            m.notename[scaleIdx * NUM_FREQS + 1]  = n_intervals_str[scaleIdx][0];
 
             m.frequency[scaleIdx * NUM_FREQS + 2] = m.frequency[scaleIdx * NUM_FREQS + 0] * n_intervals[scaleIdx][1];
-            m.notename[scaleIdx * NUM_FREQS + 2]  = n_intervals_str[scaleIdx][1];
 
             m.frequency[scaleIdx * NUM_FREQS + 3] = m.frequency[scaleIdx * NUM_FREQS + 0] * n_intervals[scaleIdx][2];
-            m.notename[scaleIdx * NUM_FREQS + 3]  = n_intervals_str[scaleIdx][2];
 
             for (int i = 4; i < 21; i++) {
-                m.frequency[scaleIdx * NUM_FREQS + i] = m.frequency[scaleIdx * NUM_FREQS + i - 4] * 3; //tritave
+                m.frequency[scaleIdx * NUM_FREQS + i] = m.frequency[scaleIdx * NUM_FREQS + i - 4] * 3.0; 
                 m.notename[scaleIdx * NUM_FREQS + i]  = m.notename[scaleIdx * NUM_FREQS + i - 4];
             }
         }
@@ -178,6 +295,7 @@ struct bp_generator : generator {
     };
 
 };
+
 
 
 struct filter {
@@ -275,8 +393,9 @@ int main() {
 
     scale s = g.generateScale();
 
-    for (auto freq: s.notename) {
-        std::cout << std::to_string(i) << " "<<  freq << std::endl;
+    for (int idx = 0; idx < 231; idx++) {
+
+        std::cout << std::to_string(idx) << " " << s.notename[idx] << " " <<  std::to_string(s.frequency[idx]) << std::endl;
         if (i++ % 21 == 0) {
             std::cout << "-- " << std::endl;
         }
