@@ -125,7 +125,7 @@ struct wcspread_generator : generator {
 
 struct video_generator : generator {
 
-	double start_freq = 59.94;
+	const double start_freq = 59.94;
 
     scale generateScale() override {
         scale m;
@@ -340,7 +340,7 @@ struct gamelan_generator : interval_generator {
 
 struct b296_generator : generator {
 
-    double b296_freqs[21] = {20, 40, 60, 80, 100, 150, 250, 350, 500, 630,800,1000,1300,1600,2000,2600,3500,5000,8000,10000,20000};
+    const double b296_freqs[21] = {20, 40, 60, 80, 100, 150, 250, 350, 500, 630,800,1000,1300,1600,2000,2600,3500,5000,8000,10000,20000};
 
     scale generateScale() override {
         scale m;
@@ -424,8 +424,7 @@ struct shrutis_generator : generator {
         "Ni"
     };
 
-
-	double start_freq = 16.3515978313; // C0
+	const double start_freq = 16.3515978313; // C0
 
     scale generateScale() override {
         scale m;
@@ -545,9 +544,9 @@ struct mesopotamian_generator : interval_generator {
 
 };
 
-struct alpha1_generator : wcspread_generator {
+struct alphaspread1_generator : wcspread_generator {
 
-	double start_freq = 20.60172231; // E0
+	const double start_freq = 20.60172231; // E0
 
     std::pair<int,int> intervalPairs[11] = {
         { 4, 10 },
@@ -592,9 +591,9 @@ struct alpha1_generator : wcspread_generator {
 
 };
 
-struct alpha2_generator : wcspread_generator {
+struct alphaspread2_generator : wcspread_generator {
 
-	double start_freq = 82.4068892282; // E2
+	const double start_freq = 82.4068892282; // E2
 
     std::pair<int,int> intervalPairs[11] = {
         { 1, 11 },
@@ -641,7 +640,7 @@ struct alpha2_generator : wcspread_generator {
 
 struct gammaspread_generator : wcspread_generator {
 
-	double start_freq = 20.60172231; // E0
+	const double start_freq = 20.60172231; // E0
 
     virtual double cents() override { return 35.099; }
 
@@ -681,6 +680,91 @@ struct gammaspread_generator : wcspread_generator {
 
         generateFrequencies(m, intervalPairs, start_freq);
         generateNames(m, intervalPairs);
+
+        return m;
+
+    };
+
+};
+
+struct gamma_generator : generator {
+
+	double start_freq = 120.0;
+    double cents = 35.099;
+
+    scale generateScale() override {
+        scale m;
+        m.classname = "gamma_notused";
+        m.name = "Gamma";
+        m.description = "Like the Alpha scale, Wendy Carlos' Gamma scale is based on a fixed interval size whose multiples approximate justly intonated intervals. Here the step size is 35 cents which is 20 divisions of the perfect fifth. The notes are consequetively arranged starting at 120Hz. This scale is not used in SMR";
+        m.scalename = {
+            "Gamma 0; 120Hz-",
+            "Gamma 1; 180Hz-",
+            "Gamma 2; 270Hz-",
+            "Gamma 3; 405Hz-",
+            "Gamma 4; 607.5Hz-",
+            "Gamma 5; 911.3Hz-",
+            "Gamma 6; 1367.0HZ-",
+            "Gamma 7; 2050.5Hz-",
+            "Gamma 8; 3075.8Hz-",
+            "Gamma 9; 4613.8Hz-",
+            "Gamma 10; 6920.8Hz-"
+        };
+
+        double freq = start_freq;
+
+        for (int scaleIdx = 0; scaleIdx < NUM_SCALES; scaleIdx++) {
+            m.frequency[scaleIdx * NUM_FREQS] = freq;
+
+            for (int noteIdx = 1; noteIdx < NUM_FREQS; noteIdx++) {
+                m.frequency[scaleIdx * NUM_FREQS + noteIdx] = 
+                    m.frequency[scaleIdx * NUM_FREQS + noteIdx - 1] * pow(2.0, cents/1200.0);
+            }
+
+            freq = m.frequency[scaleIdx * NUM_FREQS + NUM_FREQS - 1];
+        }
+
+        return m;
+
+    }
+
+};
+
+struct et17_generator : generator {
+
+	const double start_freq = 13.75;
+
+    scale generateScale() override {
+        scale m;
+        m.classname = "seventeen";
+        m.name = "17 TET";
+        m.description = "17 notes per octave, Equal temperament. Scales are arranged consecutively from 13.75Hz to 20kHz";
+        m.scalename = {
+            "13.75Hz; A-1-",
+            "27.5Hz; A0-",
+            "55Hz; A1-",
+            "110Hz; A2-",
+            "220Hz; A3-",
+            "440Hz; A4-",
+            "880Hz; A5-",
+            "1760Hz; A6-",
+            "3520Hz; A7-",
+            "7040Hz; A8-",
+            "14080Hz; A9-"
+        };
+
+        double freq = start_freq;
+
+        for (int scaleIdx = 0; scaleIdx < NUM_SCALES; scaleIdx++) {
+            m.frequency[scaleIdx * NUM_FREQS] = freq;
+
+            for (int noteIdx = 1; noteIdx < NUM_FREQS; noteIdx++) {
+                m.frequency[scaleIdx * NUM_FREQS + noteIdx] = 
+                    m.frequency[scaleIdx * NUM_FREQS + noteIdx - 1] * pow(2.0, 1.0/17.0);
+            }
+
+            freq *= 2.0;
+        }
 
         return m;
 
@@ -807,15 +891,23 @@ int main() {
     mesopotamian_generator mesopotamian = {};
     // generators.push_back(&mesopotamian);
 
-    alpha1_generator alpha1 = {};
+    alphaspread1_generator alpha1 = {};
     // generators.push_back(&alpha1);
 
-    alpha2_generator alpha2 = {};
+    alphaspread2_generator alpha2 = {};
     // generators.push_back(&alpha2);
 
     gammaspread_generator gamma_spread = {};
-    generators.push_back(&gamma_spread);
+    // generators.push_back(&gamma_spread);
+
+    gamma_generator gamma = {};
+    // generators.push_back(&gamma);
     
+    et17_generator et17 = {};
+    generators.push_back(&et17);
+
+
+
     maxq_filter maxq48 = {};
     maxq48.sampleRate = 48000;
     filters.push_back(&maxq48);
