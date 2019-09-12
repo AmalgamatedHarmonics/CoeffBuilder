@@ -31,17 +31,20 @@ struct generator {
 
 struct interval_generator : generator {
 
-    virtual double octave() { return 2.0; }
-
-    void generateFrequencies(scale &m, std::vector<double> n_intervals[NUM_SCALES], std::vector<double> startFrequencies) {
+    void generateFrequencies(scale &m, 
+        std::vector<double> n_intervals[NUM_SCALES], 
+        std::vector<double> startFrequencies,
+        std::vector<double> octaves ) {
 
         for (int scaleIdx = 0; scaleIdx < NUM_SCALES; scaleIdx++) {
             for (int noteIdx = 0; noteIdx < n_intervals[scaleIdx].size(); noteIdx++ ) {
-                m.frequency[scaleIdx * NUM_FREQS + noteIdx] = n_intervals[scaleIdx][noteIdx] * startFrequencies[scaleIdx];
+                m.frequency[scaleIdx * NUM_FREQS + noteIdx] = 
+                    n_intervals[scaleIdx][noteIdx] * startFrequencies[scaleIdx];
             }
 
             for (int i = n_intervals[scaleIdx].size(); i < NUM_FREQS; i++) {
-                m.frequency[scaleIdx * NUM_FREQS + i] = m.frequency[scaleIdx * NUM_FREQS + i - n_intervals[scaleIdx].size()] * octave();
+                m.frequency[scaleIdx * NUM_FREQS + i] = 
+                    m.frequency[scaleIdx * NUM_FREQS + i - n_intervals[scaleIdx].size()] * octaves[scaleIdx];
             }
         }
     }
@@ -67,9 +70,7 @@ struct wcspread_generator : generator {
     void generateFrequencies(scale &m, std::pair<int,int> intervalPairs[11], float startFrequency) {
 
         for (int scaleIdx = 0; scaleIdx < NUM_SCALES; scaleIdx++) {
-
             m.frequency[scaleIdx * NUM_FREQS] = startFrequency;
-
             for (int noteIdx = 1; noteIdx < NUM_FREQS; noteIdx = noteIdx + 2) {
 
                 m.frequency[scaleIdx * NUM_FREQS + noteIdx] = 
@@ -94,34 +95,7 @@ struct wcspread_generator : generator {
             }
         }
     }
-
-    // void generateFrequencies(scale &m, std::vector<double> n_intervals[NUM_SCALES], std::vector<double> startFrequencies) {
-
-    //     for (int scaleIdx = 0; scaleIdx < NUM_SCALES; scaleIdx++) {
-    //         for (int noteIdx = 0; noteIdx < n_intervals[scaleIdx].size(); noteIdx++ ) {
-    //             m.frequency[scaleIdx * NUM_FREQS + noteIdx] = n_intervals[scaleIdx][noteIdx] * startFrequencies[scaleIdx];
-    //         }
-
-    //         for (int i = n_intervals[scaleIdx].size(); i < NUM_FREQS; i++) {
-    //             m.frequency[scaleIdx * NUM_FREQS + i] = m.frequency[scaleIdx * NUM_FREQS + i - n_intervals[scaleIdx].size()] * octave();
-    //         }
-    //     }
-    // }
-
-    // void generateNames(scale &m, std::vector<std::string> n_intervals_str[NUM_SCALES]) {
-
-    //     for (int scaleIdx = 0; scaleIdx < NUM_SCALES; scaleIdx++) {
-    //         for (int noteIdx = 0; noteIdx < n_intervals_str[scaleIdx].size(); noteIdx++ ) {
-    //             m.notename[scaleIdx * NUM_FREQS + noteIdx]  = n_intervals_str[scaleIdx][noteIdx];
-    //         }
-
-    //         for (int i = n_intervals_str[scaleIdx].size(); i < NUM_FREQS; i++) {
-    //             m.notename[scaleIdx * NUM_FREQS + i]  = m.notename[scaleIdx * NUM_FREQS + i - n_intervals_str[scaleIdx].size()];
-    //         }
-    //     }
-    // }
 };
-
 
 struct video_generator : generator {
 
@@ -168,7 +142,7 @@ struct video_generator : generator {
 
 struct bp_generator : interval_generator {
 
-    virtual double octave() { return 3.0; }
+    double octave() { return 3.0; }
 
    	double BP_intervals[14] = {
         1.0, 
@@ -235,6 +209,8 @@ struct bp_generator : interval_generator {
 
     std::vector<double> startFrequencies {std::vector<double>(11, 32.7031956626)}; // C1
 
+    std::vector<double> octaves {std::vector<double>(11, 3.0)}; // C1
+
     scale generateScale() override {
 
         scale m;
@@ -255,7 +231,7 @@ struct bp_generator : interval_generator {
             "C, Gb, J, B; C1-"
         };
 
-        generateFrequencies(m, n_intervals, startFrequencies);
+        generateFrequencies(m, n_intervals, startFrequencies, octaves);
         generateNames(m, n_intervals_str);
 
         return m;
@@ -330,7 +306,9 @@ struct gamelan_generator : interval_generator {
         // To be honest, I really do not understand what 4ms is up to with all these offsets. 
         // Maybe simulating the differences in gamelan tuning?
 
-        generateFrequencies(m, n_intervals, startFrequencies);
+        std::vector<double> octaves {std::vector<double>(11, 2.0)}; // C1
+
+        generateFrequencies(m, n_intervals, startFrequencies, octaves);
 
         return m;
 
@@ -536,7 +514,9 @@ struct mesopotamian_generator : interval_generator {
             55.0 * 8.0,
             55.0}; 
 
-        generateFrequencies(m, n_intervals, startFrequencies);
+        std::vector<double> octaves {std::vector<double>(11, 2.0)};
+
+        generateFrequencies(m, n_intervals, startFrequencies, octaves);
 
         return m;
 
@@ -762,7 +742,6 @@ struct et17_generator : generator {
                 m.frequency[scaleIdx * NUM_FREQS + noteIdx] = 
                     m.frequency[scaleIdx * NUM_FREQS + noteIdx - 1] * pow(2.0, 1.0/17.0);
             }
-
             freq *= 2.0;
         }
 
@@ -772,6 +751,102 @@ struct et17_generator : generator {
 
 };
 
+struct indian_generator : interval_generator {
+
+    scale generateScale() override {
+
+        scale m;
+        m.classname = "indian_penta";
+        m.name = "Indian Classical";
+        m.description = "The Indian Classical scale contains 12 notes, seven of which form the basic notes - Svara - Sa, Ri/Re, Ga, Ma, Pa, Dha, Ni. Unlike the western tradition, the scale uses just intonation and lacks a reference concert pitch, so these notes are similar although not identical in concept to solfege; the pitch of Sa is used as a reference for the other notes in performance. All notes have several acceptable frequency ratios except Sa and Pa (which are always 1:1 and 3:2). The full set of 22 allowed pitches are the Shrutis. The ratios used in SMR co-incide with 'Ptolemy's intense diatonic scale' in increasing octaves of E. Scales 8 to 11 are selections from  Scale 11 is a repeat of Scale 10. SMR describes this scale as pentatonic, which it is not.";
+        m.scalename = {
+            "Svara; E0",
+            "Svara; E1",
+            "Svara; E2",
+            "Svara; E3",
+            "Svara; E4",
+            "Svara; E5",
+            "Svara; E6",
+            "Sa, Ri, ma, Dha; 120Hz",
+            "Svara over 2 octaves; 120Hz",
+            "Svara over 5 octaves; 20Hz",
+            "Svara over 5 octaves; 20Hz"
+        };
+
+        std::vector<double> n_intervals[NUM_SCALES] = { 
+            { 1.0, (9.0/8.0), (5.0/4.0), (4.0/3.0), (3.0/2.0), (5.0/3.0), (15.0/8.0) },
+            { 1.0, (9.0/8.0), (5.0/4.0), (4.0/3.0), (3.0/2.0), (5.0/3.0), (15.0/8.0) },
+            { 1.0, (9.0/8.0), (5.0/4.0), (4.0/3.0), (3.0/2.0), (5.0/3.0), (15.0/8.0) },
+            { 1.0, (9.0/8.0), (5.0/4.0), (4.0/3.0), (3.0/2.0), (5.0/3.0), (15.0/8.0) },
+            { 1.0, (9.0/8.0), (5.0/4.0), (4.0/3.0), (3.0/2.0), (5.0/3.0), (15.0/8.0) },
+            { 1.0, (9.0/8.0), (5.0/4.0), (4.0/3.0), (3.0/2.0), (5.0/3.0), (15.0/8.0) },
+            { 1.0, (9.0/8.0), (5.0/4.0), (4.0/3.0), (3.0/2.0), (5.0/3.0), (15.0/8.0) },
+            { 1.0, (9.0/8.0), (4.0/3.0), (15.0/8.0) },
+            { 1.0, (5.0/4.0), (5.0/3.0), (15.0/8.0), (9.0/8.0) * 2.0, (4.0/3.0) * 2.0, (3.0/2.0) * 2.0 }, // x4
+            { 1.0, (9.0/8.0), 
+                2.0, (5.0/4.0) * 2.0, 
+                4.0, (4.0/3.0) * 4.0, 
+                8.0, (3.0/2.0) * 8.0, 
+                16.0, (5.0,3.0) * 16.0, 
+                32.0, (15.0/8.0) * 32.0 }, // x64
+            { 1.0, (9.0/8.0), 
+                2.0, (5.0/4.0) * 2.0, 
+                4.0, (4.0/3.0) * 4.0, 
+                8.0, (3.0/2.0) * 8.0, 
+                16.0, (5.0,3.0) * 16.0, 
+                32.0, (15.0/8.0) * 32.0 } // x64
+        };
+
+        std::vector<std::string> n_intervals_str[NUM_SCALES] = { 
+            { "Sa", "Ri", "Ga", "ma", "Pa", "Dha", "Ni" },
+            { "Sa", "Ri", "Ga", "ma", "Pa", "Dha", "Ni" },
+            { "Sa", "Ri", "Ga", "ma", "Pa", "Dha", "Ni" },
+            { "Sa", "Ri", "Ga", "ma", "Pa", "Dha", "Ni" },
+            { "Sa", "Ri", "Ga", "ma", "Pa", "Dha", "Ni" },
+            { "Sa", "Ri", "Ga", "ma", "Pa", "Dha", "Ni" },
+            { "Sa", "Ri", "Ga", "ma", "Pa", "Dha", "Ni" },
+            { "Sa", "Ri", "ma", "Ni" },
+            { "Sa", "Ga", "Dha", "Ni", "Ri^2", "ma^2", "Pa^2" }, // x4
+            { "Sa", "Ri", "Sa^2", "Ga^2", "Sa^3", "ma^3", "Sa^4", "Pa^4", "Sa^5", "Dha^5", "Sa^6", "Ni^6" }, // x64
+            { "Sa", "Ri", "Sa^2", "Ga^2", "Sa^3", "ma^3", "Sa^4", "Pa^4", "Sa^5", "Dha^5", "Sa^6", "Ni^6" } // x64
+        };
+
+        std::vector<double> startFrequencies {
+            20.60172231,
+            20.60172231 * 2,
+            20.60172231 * 4,
+            20.60172231 * 8,
+            20.60172231 * 16,
+            20.60172231 * 32,
+            20.60172231 * 64,
+            120.0,
+            120.0,
+            20.0,
+            20.0
+        }; 
+
+        std::vector<double> octaves {
+            2.0,
+            2.0,
+            2.0,
+            2.0,
+            2.0,
+            2.0,
+            2.0,
+            2.0,
+            4.0,
+            64.0,
+            64.0
+        };
+
+        generateFrequencies(m, n_intervals, startFrequencies, octaves);
+        generateNames(m, n_intervals_str);
+
+        return m;
+
+    };
+
+};
 
 struct filter {
 
@@ -904,8 +979,10 @@ int main() {
     // generators.push_back(&gamma);
     
     et17_generator et17 = {};
-    generators.push_back(&et17);
+    // generators.push_back(&et17);
 
+    indian_generator indian = {};
+    generators.push_back(&indian);
 
 
     maxq_filter maxq48 = {};
