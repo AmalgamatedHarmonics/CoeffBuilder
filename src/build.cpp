@@ -2,6 +2,8 @@
 #include <string>
 #include <array>
 #include <vector>
+#include <utility>
+	
 
 #include <math.h>
 
@@ -38,7 +40,7 @@ struct interval_generator : generator {
                 m.frequency[scaleIdx * NUM_FREQS + noteIdx] = n_intervals[scaleIdx][noteIdx] * startFrequencies[scaleIdx];
             }
 
-            for (int i =  n_intervals[scaleIdx].size(); i < NUM_FREQS; i++) {
+            for (int i = n_intervals[scaleIdx].size(); i < NUM_FREQS; i++) {
                 m.frequency[scaleIdx * NUM_FREQS + i] = m.frequency[scaleIdx * NUM_FREQS + i - n_intervals[scaleIdx].size()] * octave();
             }
         }
@@ -51,19 +53,81 @@ struct interval_generator : generator {
                 m.notename[scaleIdx * NUM_FREQS + noteIdx]  = n_intervals_str[scaleIdx][noteIdx];
             }
 
-            for (int i =  n_intervals_str[scaleIdx].size(); i < NUM_FREQS; i++) {
+            for (int i = n_intervals_str[scaleIdx].size(); i < NUM_FREQS; i++) {
                 m.notename[scaleIdx * NUM_FREQS + i]  = m.notename[scaleIdx * NUM_FREQS + i - n_intervals_str[scaleIdx].size()];
             }
         }
     }
-
 };
+
+struct wcspread_generator : generator {
+
+    virtual double cents() { return 78.0; }
+
+    void generateFrequencies(scale &m, std::pair<int,int> intervalPairs[11], float startFrequency) {
+
+        for (int scaleIdx = 0; scaleIdx < NUM_SCALES; scaleIdx++) {
+
+            m.frequency[scaleIdx * NUM_FREQS] = startFrequency;
+
+            for (int noteIdx = 1; noteIdx < NUM_FREQS; noteIdx = noteIdx + 2) {
+
+                m.frequency[scaleIdx * NUM_FREQS + noteIdx] = 
+                    m.frequency[scaleIdx * NUM_FREQS + noteIdx - 1] *
+                    pow(2.0, cents() * intervalPairs[scaleIdx].first / 1200.0);
+
+                m.frequency[scaleIdx * NUM_FREQS + noteIdx + 1] = 
+                    m.frequency[scaleIdx * NUM_FREQS + noteIdx] *
+                    pow(2.0, cents() * intervalPairs[scaleIdx].second / 1200.0);
+
+            }
+        }
+    }
+
+    void generateNames(scale &m, std::pair<int,int> intervalPairs[11]) {
+        for (int scaleIdx = 0; scaleIdx < NUM_SCALES; scaleIdx++) {
+            m.notename[scaleIdx * NUM_FREQS] = "0";
+
+            for (int noteIdx = 1; noteIdx < NUM_FREQS; noteIdx = noteIdx + 2) {
+                m.notename[scaleIdx * NUM_FREQS + noteIdx] = "+" + std::to_string(intervalPairs[scaleIdx].first);
+                m.notename[scaleIdx * NUM_FREQS + noteIdx + 1] = "+" + std::to_string(intervalPairs[scaleIdx].second);
+            }
+        }
+    }
+
+    // void generateFrequencies(scale &m, std::vector<double> n_intervals[NUM_SCALES], std::vector<double> startFrequencies) {
+
+    //     for (int scaleIdx = 0; scaleIdx < NUM_SCALES; scaleIdx++) {
+    //         for (int noteIdx = 0; noteIdx < n_intervals[scaleIdx].size(); noteIdx++ ) {
+    //             m.frequency[scaleIdx * NUM_FREQS + noteIdx] = n_intervals[scaleIdx][noteIdx] * startFrequencies[scaleIdx];
+    //         }
+
+    //         for (int i = n_intervals[scaleIdx].size(); i < NUM_FREQS; i++) {
+    //             m.frequency[scaleIdx * NUM_FREQS + i] = m.frequency[scaleIdx * NUM_FREQS + i - n_intervals[scaleIdx].size()] * octave();
+    //         }
+    //     }
+    // }
+
+    // void generateNames(scale &m, std::vector<std::string> n_intervals_str[NUM_SCALES]) {
+
+    //     for (int scaleIdx = 0; scaleIdx < NUM_SCALES; scaleIdx++) {
+    //         for (int noteIdx = 0; noteIdx < n_intervals_str[scaleIdx].size(); noteIdx++ ) {
+    //             m.notename[scaleIdx * NUM_FREQS + noteIdx]  = n_intervals_str[scaleIdx][noteIdx];
+    //         }
+
+    //         for (int i = n_intervals_str[scaleIdx].size(); i < NUM_FREQS; i++) {
+    //             m.notename[scaleIdx * NUM_FREQS + i]  = m.notename[scaleIdx * NUM_FREQS + i - n_intervals_str[scaleIdx].size()];
+    //         }
+    //     }
+    // }
+};
+
 
 struct video_generator : generator {
 
 	double start_freq = 59.94;
 
-    scale generateScale() {
+    scale generateScale() override {
         scale m;
         m.classname = "video_notused";
         m.name = "Video";
@@ -171,7 +235,7 @@ struct bp_generator : interval_generator {
 
     std::vector<double> startFrequencies {std::vector<double>(11, 32.7031956626)}; // C1
 
-    scale generateScale() {
+    scale generateScale() override {
 
         scale m;
         m.classname = "bohlenpierce";
@@ -202,7 +266,7 @@ struct bp_generator : interval_generator {
 
 struct gamelan_generator : interval_generator {
 
-    scale generateScale() {
+    scale generateScale() override {
 
         scale m;
         m.classname = "gamelan";
@@ -278,7 +342,7 @@ struct b296_generator : generator {
 
     double b296_freqs[21] = {20, 40, 60, 80, 100, 150, 250, 350, 500, 630,800,1000,1300,1600,2000,2600,3500,5000,8000,10000,20000};
 
-    scale generateScale() {
+    scale generateScale() override {
         scale m;
         m.classname = "buchla296";
         m.name = "Buchla 296 EQ";
@@ -363,7 +427,7 @@ struct shrutis_generator : generator {
 
 	double start_freq = 16.3515978313; // C0
 
-    scale generateScale() {
+    scale generateScale() override {
         scale m;
         m.classname = "indian_shrutis";
         m.name = "Indian Shrutis";
@@ -388,6 +452,235 @@ struct shrutis_generator : generator {
                 m.notename[scaleIdx * NUM_FREQS + noteIdx] =  shrutis_intervals_str[noteIdx];
             }
         }
+
+        return m;
+
+    };
+
+};
+
+struct mesopotamian_generator : interval_generator {
+
+	// Exact Mesopotamian tuning ratios:
+	double I    = 1.0;      		// Unison
+	double I0   = 256.0/243.0;		// Pythagorean minor second
+	double I1   = 9.0/8.0;			// Pythagorean major second
+	double I18  = 32.0/27.0;		// Pythagorean minor third
+	double I2   = 81.0/64.0;		// Pythagorean major third
+	double I3   = 4.0/3.0;			// Pythagorean perfect fourth
+	double I4   = 1024.0/729.0;		// Pythagorean diminished fifth
+	double I5   = 3.0/2.0; 			// Pythagorean perfect fifth
+	double I58  = 128.0/81.0;		// Pythagorean minor sixth
+	double I6   = 27.0/16.0;		// Pythagorean major sixth
+	double I7   = 16.0/9.0;			// Pythagorean minor seventh
+	double I8   = 243.0/128.0;		// Pythagorean major seventh
+	// No Augmented fourth 729:512
+
+    scale generateScale() override {
+
+        scale m;
+        m.classname = "mesopotamian";
+        m.name = "Mesopotamian";
+        m.description = "The Mesopotamian tuning systems have reconstructed from cuneiform tablet from the Sumerian civilisation describing a Babylonian harp. The original work was made in 1960-70s by Duchesne-Guillemin, Kilmer, Gurney and Wulstan deriving a heptatonic ascending scale. Subsequent work by Vitale and Dumbrill indicated that a descending scale was used. The reader is referred to 'NEW LIGHT ON THE BABYLONIAN TONAL SYSTEM, Leon Crickmore for an up-to-date summary of the discussion. Here the module used a Pythagorian tuning and step size suggested by West in THE BABYLONIAN MUSICAL NOTATION AND THE HURRIAN MELODIC TEXTS, p164. The frequencies have been recalculated using more accurate frequency ratios.";
+        m.scalename = {
+            "Ishartum; A1-",
+            "Ishartum; A4-",
+            "Embulum; A1-",
+            "Embulum; A4-",
+            "Nid Murub; A1-",
+            "Nid Murub; A4-",
+            "Quablitum; A1-",
+            "Quablitum; A4-",
+            "Kitmun; A1-",
+            "Kitmun; A4-",
+            "Mitum; A1-"
+        };
+
+        std::vector<double> n_intervals[NUM_SCALES] = {
+            { I, I0, I18, I3, I5, I58, I7 },   // Ishartum
+            { I, I0, I18, I3, I5, I58, I7 },   // Ishartum
+            { I, I1, I18, I3, I5, I6, I7 },    // Embulum
+            { I, I1, I18, I3, I5, I6, I7 },    // Embulum
+            { I, I1, I2, I3, I5, I6, I8 },     // Nid Murub
+            { I, I1, I2, I3, I5, I6, I8 },     // Nid Murub
+            { I, I0, I18, I4, I5, I58, I7 },   // Quablitum
+            { I, I0, I18, I4, I5, I58, I7 },   // Quablitum
+            { I, I1, I2, I3, I5, I6, I7 },     // Kitmun
+            { I, I1, I2, I3, I5, I6, I7 },     // Kitmun
+            { I, I1, I2, I4, I5, I58, I7 }     // Mitum
+        };
+
+        std::vector<std::string> n_intervals_str[NUM_SCALES] = { 
+            // { BP_intervals_str[3], BP_intervals_str[7],  BP_intervals_str[10] },
+            // { BP_intervals_str[3], BP_intervals_str[7],  BP_intervals_str[11] },
+            // { BP_intervals_str[4], BP_intervals_str[6],  BP_intervals_str[10] },
+            // { BP_intervals_str[4], BP_intervals_str[7],  BP_intervals_str[9] },
+            // { BP_intervals_str[4], BP_intervals_str[7],  BP_intervals_str[10] },
+            // { BP_intervals_str[4], BP_intervals_str[7],  BP_intervals_str[11] },
+            // { BP_intervals_str[6], BP_intervals_str[7],  BP_intervals_str[10] },
+            // { BP_intervals_str[6], BP_intervals_str[7],  BP_intervals_str[11] },
+            // { BP_intervals_str[6], BP_intervals_str[10], BP_intervals_str[11] },
+            // { BP_intervals_str[6], BP_intervals_str[8],  BP_intervals_str[12] },
+            // { BP_intervals_str[5], BP_intervals_str[9],  BP_intervals_str[12] }
+        };
+
+        std::vector<double> startFrequencies {
+            55.0,    
+            55.0 * 8.0,
+            55.0,    
+            55.0 * 8.0,
+            55.0,    
+            55.0 * 8.0,
+            55.0,    
+            55.0 * 8.0,
+            55.0,    
+            55.0 * 8.0,
+            55.0}; 
+
+        generateFrequencies(m, n_intervals, startFrequencies);
+
+        return m;
+
+    };
+
+};
+
+struct alpha1_generator : wcspread_generator {
+
+	double start_freq = 20.60172231; // E0
+
+    std::pair<int,int> intervalPairs[11] = {
+        { 4, 10 },
+        { 5, 10 },
+        { 4, 12 },
+        { 5, 11 },
+        { 6, 10 },
+        { 7, 8 },
+        { 8, 7 },
+        { 9, 7 },
+        { 10, 5 },
+        { 11, 5 },
+        { 12, 4 }
+    };
+
+    scale generateScale() override {
+
+        scale m;
+        m.classname = "wc_alpha1";
+        m.name = "Alpha Spread 1";
+        m.description = "Omitting the octave, Wendy Carlos' Alpha scale is a based on a fixed interval size whose multiples approximate justly intonated intervals. Here the step size is 78 cents - 9 divisions of the perfect fifth, or the minor third in four steps. This scale is constructed from ascending pairs of intervals.";
+        m.scalename = {
+            "4/10; E0-",
+            "5/10; E0-",
+            "4/12; E0-",
+            "5/11; E0-",
+            "6/10; E0-",
+            "7/8; E0-",
+            "8/7; E0-",
+            "9/7; E0-",
+            "10/5; E0-",
+            "11/5; E0-",
+            "12/4; E0-"
+        };
+
+        generateFrequencies(m, intervalPairs, start_freq);
+        generateNames(m, intervalPairs);
+
+        return m;
+
+    };
+
+};
+
+struct alpha2_generator : wcspread_generator {
+
+	double start_freq = 82.4068892282; // E2
+
+    std::pair<int,int> intervalPairs[11] = {
+        { 1, 11 },
+        { 2, 10 },
+        { 3, 9 },
+        { 4, 8 },
+        { 5, 7 },
+        { 6, 6 },
+        { 7, 5 },
+        { 8, 4 },
+        { 9, 3 },
+        { 10, 2 },
+        { 11, 1 }
+    };
+
+    scale generateScale() override {
+
+        scale m;
+        m.classname = "wc_alpha2";
+        m.name = "Alpha Spread 2";
+        m.description = "Omitting the octave, Wendy Carlos' Alpha scale is a based on a fixed interval size whose multiples approximate justly intonated intervals. Here the step size is 78 cents - 9 divisions of the perfect fifth, or the minor third in four steps. This scale is constructed from ascending pairs of intervals.";
+        m.scalename = {
+            "1/11; E2-",
+            "10/2; E2-",
+            "3/9; E2-",
+            "4/8; E2-",
+            "5/7; E2-",
+            "6/6; E2-",
+            "7/5; E2-",
+            "8/4; E2-",
+            "9/3; E2-",
+            "10/2; E2-",
+            "11/1; E2-"
+        };
+
+        generateFrequencies(m, intervalPairs, start_freq);
+        generateNames(m, intervalPairs);
+
+        return m;
+
+    };
+
+};
+
+struct gammaspread_generator : wcspread_generator {
+
+	double start_freq = 20.60172231; // E0
+
+    virtual double cents() override { return 35.099; }
+
+    std::pair<int,int> intervalPairs[11] = {
+        { 3, 30 },
+        { 5, 29 },
+        { 8, 25 },
+        { 11, 23 },
+        { 13, 21 },
+        { 15, 19 },
+        { 18, 16 },
+        { 20, 14 },
+        { 24, 10 },
+        { 29, 5 },
+        { 31, 3 }
+    };
+
+    scale generateScale() override {
+
+        scale m;
+        m.classname = "wc_gamma";
+        m.name = "Gamma Spread";
+        m.description = "Like the Alpha scale, Wendy Carlos' Gamma scale is based on a fixed interval size whose multiples approximate justly intonated intervals. Here the step size is 35 cents; 20 divisions of the perfect fifth. This scale consists of ascending pairs of intervals.";
+        m.scalename = {
+            "3/30; E0-",
+            "5/29; E0-",
+            "9/25; E0-",
+            "11/23; E0-",
+            "13/21; E0-",
+            "15/19; E0-",
+            "18/16; E0-",
+            "20/14; E0-",
+            "24/10; E0-",
+            "29/5; E0-",
+            "31/3; E0-"
+        };
+
+        generateFrequencies(m, intervalPairs, start_freq);
+        generateNames(m, intervalPairs);
 
         return m;
 
@@ -509,8 +802,20 @@ int main() {
     // generators.push_back(&b296);
 
     shrutis_generator shrutis = {};
-    generators.push_back(&shrutis);
+    // generators.push_back(&shrutis);
 
+    mesopotamian_generator mesopotamian = {};
+    // generators.push_back(&mesopotamian);
+
+    alpha1_generator alpha1 = {};
+    // generators.push_back(&alpha1);
+
+    alpha2_generator alpha2 = {};
+    // generators.push_back(&alpha2);
+
+    gammaspread_generator gamma_spread = {};
+    generators.push_back(&gamma_spread);
+    
     maxq_filter maxq48 = {};
     maxq48.sampleRate = 48000;
     filters.push_back(&maxq48);
