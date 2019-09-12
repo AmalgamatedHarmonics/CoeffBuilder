@@ -276,9 +276,7 @@ struct gamelan_generator : interval_generator {
 
 struct b296_generator : generator {
 
-    double b296_freqs[21]={20, 40, 60, 80, 100, 150, 250, 350, 500, 630,800,1000,1300,1600,2000,2600,3500,5000,8000,10000,20000};
-
-	double start_freq = 59.94;
+    double b296_freqs[21] = {20, 40, 60, 80, 100, 150, 250, 350, 500, 630,800,1000,1300,1600,2000,2600,3500,5000,8000,10000,20000};
 
     scale generateScale() {
         scale m;
@@ -303,6 +301,91 @@ struct b296_generator : generator {
     		double start_freq = pow(2, scaleIdx / 24.0); // freq increases with each scale
             for (int noteIdx = 0; noteIdx < NUM_FREQS; noteIdx++) {
                 m.frequency[scaleIdx * NUM_FREQS + noteIdx] = start_freq * b296_freqs[noteIdx];
+            }
+        }
+
+        return m;
+
+    };
+
+};
+
+struct shrutis_generator : generator {
+
+    double shrutis_intervals[21] = {
+    	1.0,
+		16.0/15.0,
+		10.0/9.0,
+		9.0/8.0,
+		32.0/27.0,
+		6.0/5.0,
+		5.0/4.0,
+		81.0/64.0,
+		4.0/3.0,
+		27.0/20.0,
+		45.0/32.0,
+		729.0/512.0,
+		3.0/2.0,
+		128.0/81.0,
+		8.0/5.0,
+		5.0/3.0,
+		27.0/16.0,
+		16.0/9.0,
+		9.0/5.0,
+		15.0/8.0,
+        243.0/128.0
+    };
+
+    std::string shrutis_intervals_str[21] = {
+    	"Sa",
+		"ri",
+		"Ri",
+		"Ri",
+		"ga",
+		"ga",
+		"Ga",
+		"Ga",
+		"ma",
+		"ma",
+		"Ma",
+		"Ma",
+		"Pa",
+		"dha",
+		"dha",
+		"Dha",
+		"Dha",
+		"ni",
+		"ni",
+		"Ni",
+        "Ni"
+    };
+
+
+	double start_freq = 16.3515978313; // C0
+
+    scale generateScale() {
+        scale m;
+        m.classname = "indian_shrutis";
+        m.name = "Indian Shrutis";
+        m.description = "In Indian classical music, a shruti is smallest interval or pitch that the human ear can detect and a singer or musical instrument can produce. These are 22 pitches in an octave, the most consonant of which form the 7 notes of the basic scale. Since SMR allows only 21 notes in a scale, the first note of Ri (256:243) is omitted.";
+        m.scalename = {
+            "Shrutis; C0-",
+            "Shrutis; C1-",
+            "Shrutis; C2-",
+            "Shrutis; C3-",
+            "Shrutis; C4-",
+            "Shrutis; C5-",
+            "Shrutis; C6-",
+            "Shrutis; C7-",
+            "Shrutis; C8-",
+            "Shrutis; C9-",
+            "Shrutis; C10-"
+        };
+
+        for (int scaleIdx = 0; scaleIdx < NUM_SCALES; scaleIdx++) {
+            for (int noteIdx = 0; noteIdx < NUM_FREQS; noteIdx++) {
+                m.frequency[scaleIdx * NUM_FREQS + noteIdx] = start_freq * shrutis_intervals[noteIdx] * pow(2,scaleIdx);
+                m.notename[scaleIdx * NUM_FREQS + noteIdx] =  shrutis_intervals_str[noteIdx];
             }
         }
 
@@ -414,16 +497,19 @@ int main() {
     std::vector<filter *> filters;
 
     video_generator video = {};
-    generators.push_back(&video);
+    // generators.push_back(&video);
 
     bp_generator bp = {};
-    generators.push_back(&bp);
+    // generators.push_back(&bp);
 
     gamelan_generator gamelan = {};
-    generators.push_back(&gamelan);
+    // generators.push_back(&gamelan);
 
     b296_generator b296 = {};
-    generators.push_back(&b296);
+    // generators.push_back(&b296);
+
+    shrutis_generator shrutis = {};
+    generators.push_back(&shrutis);
 
     maxq_filter maxq48 = {};
     maxq48.sampleRate = 48000;
@@ -471,14 +557,14 @@ int main() {
 
             std::cout << "note " << std::to_string(idx) << " " << s.notename[idx] << " " <<  std::to_string(s.frequency[idx]) << std::endl;
 
-            for (auto filt: filters) {
-                std::vector<double> coeffs = filt->generateCoeffs(s.frequency[idx]);
-                std::cout << filt->name();
-                for (double c: coeffs) {
-                    std::cout << " " << c;
-                }
-                std::cout << std::endl;
-            }
+            // for (auto filt: filters) {
+            //     std::vector<double> coeffs = filt->generateCoeffs(s.frequency[idx]);
+            //     std::cout << filt->name();
+            //     for (double c: coeffs) {
+            //         std::cout << " " << c;
+            //     }
+            //     std::cout << std::endl;
+            // }
         }
     }
 }
