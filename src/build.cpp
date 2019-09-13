@@ -1064,7 +1064,70 @@ struct et_chromatic_generator : generator {
 
 };
 
+struct ji_triad_generator : interval_generator {
 
+    // double start_freq = 32.7 * (3.0/2.0); // Perfect fifth above C1
+    double start_freq = 13.75 * (16.0/9.0) * 2.0; // Perfect fifth above C1
+
+    scale generateScale() override {
+
+        scale m;
+        m.classname = "ji_triads";
+        m.name = "Triads (JI)";
+        m.description = "Western triads in G, Just Intonation. G1 is defined as a perfect fifth above C1=32.7Hz";
+        m.scalename = {
+            "Unison, M2, P5; G1-D8",
+            "Unison, M3, d5; G1-C#8",
+            "Unison, m3, M7; G1-D8",
+            "Unison, M3, d5; G1-D8",
+            "Unison, P4, P5; G1-D8",
+            "Unison, M3, M6; G1-E8",
+            "Unison, m3, m6; G1-D#8",
+            "Unison, m3, M6; G1-E8",
+            "Unison, m3, m7; G1-F8",
+            "Unison, m3, m7; G1-F8",
+            "Unison, P5, M7; G1-F#8"
+        };
+
+        std::vector<double> n_intervals[NUM_SCALES] = { 
+            { 1.0, 9.0/8.0, 3.0/2.0 },  // M2_5
+            { 1.0, 5.0/4.0, 10.0/7.0 }, // M3_b5
+            { 1.0, 6.0/5.0, 15.0/8.0 }, // m3_M5
+            { 1.0, 5.0/4.0, 3.0/2.0 },  // M3_5
+            { 1.0, 6.0/5.0, 10.0/7.0 }, // m3_#5
+            { 1.0, 4.0/3.0, 3.0/2.0 },  // 4_5
+            { 1.0, 5.0/4.0, 5.0/3.0 },  // M3_M6
+            { 1.0, 6.0/5.0, 8.0/5.0 },  // m3_b6
+            { 1.0, 5.0/4.0, 8.0/5.0 },  // M3_#5
+            { 1.0, 6.0/5.0, 16.0/9.0 }, // m3_m7
+            { 1.0, 3.0/2.0, 15.0/8.0 }  // 5_M7     
+        };
+
+        std::vector<std::string> n_intervals_str[NUM_SCALES] = { 
+            { "Oct", "M2", "P5" },  // M2_5
+            { "Oct", "M3", "d5" },  // M3_b5
+            { "Oct", "m3", "M7" },  // m3_M5
+            { "Oct", "M3", "P5" },  // M3_5
+            { "Oct", "m3", "d5"},   // m3_#5
+            { "Oct", "P4", "P5" },  // 4_5
+            { "Oct", "M3", "M6" },  // M3_M6
+            { "Oct", "m3", "m6" },  // m3_b6
+            { "Oct", "M3", "m6" },  // M3_#5
+            { "Oct", "m3", "m7" },  // m3_m7
+            { "Oct", "P5", "M7" }   // 5_M7     
+        };
+
+        std::vector<double> octaves {std::vector<double>(11, 2.0)}; 
+        std::vector<double> startFrequencies {std::vector<double>(11, start_freq)}; // G1 
+
+        generateFrequencies(m, n_intervals, startFrequencies, octaves);
+        generateNames(m, n_intervals_str);
+
+        return m;
+
+    };
+
+};
 
 struct filter {
 
@@ -1209,7 +1272,10 @@ int main() {
     // generators.push_back(&dia_et);
 
     et_chromatic_generator et_chromatic = {};
-    generators.push_back(&et_chromatic);
+    // generators.push_back(&et_chromatic);
+
+    ji_triad_generator ji_triad = {};
+    generators.push_back(&ji_triad);
 
     maxq_filter maxq48 = {};
     maxq48.sampleRate = 48000;
