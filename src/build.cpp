@@ -1066,8 +1066,8 @@ struct et_chromatic_generator : generator {
 
 struct ji_triad_generator : interval_generator {
 
-    // double start_freq = 32.7 * (3.0/2.0); // Perfect fifth above C1
-    double start_freq = 13.75 * (16.0/9.0) * 2.0; // Perfect fifth above C1
+    double start_freq = 32.7 * (3.0/2.0); // Perfect fifth above C1
+    // double start_freq = 13.75 * (16.0/9.0) * 2.0; // minor seventh above above A0?
 
     scale generateScale() override {
 
