@@ -1192,6 +1192,135 @@ struct ji_interval_generator : interval_generator {
 
 };
 
+struct et_triad_generator : interval_generator {
+
+    double a1 = 440.0 / 16.0;
+    double start_freq = a1 * (pow(2.0, 10.0/12.0)); // G1 
+
+    scale generateScale() override {
+
+        scale m;
+        m.classname = "et_triads";
+        m.name = "Triads (ET)";
+        m.description = "Western triads in G, Equal Temperament";
+        m.scalename = {
+            "Unison, M2, P5; G1-D8",
+            "Unison, M3, d5; G1-C#8",
+            "Unison, m3, P5; G1-D8",
+            "Unison, M3, P5; G1-D8",
+            "Unison, P4, P5; G1-D8",
+            "Unison, M3, M6; G1-E8",
+            "Unison, m3, m6; G1-D#8",
+            "Unison, m3, M6; G1-E8",
+            "Unison, m3, m7; G1-F8",
+            "Unison, P5, m7; G1-F8",
+            "Unison, P5, M7; G1-F#8"
+        };
+
+        std::vector<double> n_intervals[NUM_SCALES] = { 
+            { 1.0, pow(2.0, 2.0/12.0), pow(2.0, 7.0/12.0) },  // M2_5
+            { 1.0, pow(2.0, 4.0/12.0), pow(2.0, 6.0/12.0) }, // M3_b5
+            { 1.0, pow(2.0, 3.0/12.0), pow(2.0, 11.0/12.0) }, // m3_M5
+            { 1.0, pow(2.0, 4.0/12.0), pow(2.0, 7.0/12.0) },  // M3_5
+            { 1.0, pow(2.0, 3.0/12.0), pow(2.0, 6.0/12.0) }, // m3_#5
+            { 1.0, pow(2.0, 5.0/12.0), pow(2.0, 7.0/12.0) },  // 4_5
+            { 1.0, pow(2.0, 4.0/12.0), pow(2.0, 9.0/12.0) },  // M3_M6
+            { 1.0, pow(2.0, 3.0/12.0), pow(2.0, 8.0/12.0) },  // m3_b6
+            { 1.0, pow(2.0, 4.0/12.0), pow(2.0, 8.0/12.0) },  // M3_#5
+            { 1.0, pow(2.0, 3.0/12.0), pow(2.0, 10.0/12.0) }, // m3_m7
+            { 1.0, pow(2.0, 7.0/12.0), pow(2.0, 11.0/12.0) }  // 5_M7     
+        };
+
+        std::vector<std::string> n_intervals_str[NUM_SCALES] = { 
+            { "Oct", "M2", "P5" },  // M2_5
+            { "Oct", "M3", "d5" },  // M3_b5
+            { "Oct", "m3", "M7" },  // m3_M5
+            { "Oct", "M3", "P5" },  // M3_5
+            { "Oct", "m3", "d5"},   // m3_#5
+            { "Oct", "P4", "P5" },  // 4_5
+            { "Oct", "M3", "M6" },  // M3_M6
+            { "Oct", "m3", "m6" },  // m3_b6
+            { "Oct", "M3", "m6" },  // M3_#5
+            { "Oct", "m3", "m7" },  // m3_m7
+            { "Oct", "P5", "M7" }   // 5_M7     
+        };
+
+        std::vector<double> octaves {std::vector<double>(11, 2.0)}; 
+        std::vector<double> startFrequencies {std::vector<double>(11, start_freq)}; // G1 
+
+        generateFrequencies(m, n_intervals, startFrequencies, octaves);
+        generateNames(m, n_intervals_str);
+
+        return m;
+
+    };
+
+};
+
+struct et_interval_generator : interval_generator {
+
+    double start_freq = 440.0 / 16.0; // Major sixth above C0
+
+    scale generateScale() override {
+
+        scale m;
+        m.classname = "et_intervals";
+        m.name = "Intervals (ET)";
+        m.description = "Single western intervals in A, Equal Temperament";
+        m.scalename = {
+            "Octave + m2; A0-A8",
+            "Octave + M2; A0-A8",
+            "Octave + m3; A0-A8",
+            "Octave + M2; A0-A8",
+            "Octave + P4; A0-A8",
+            "Octave + d5; A0-A8",
+            "Octave + P5; A0-A8",
+            "Octave + m6; A0-A8",
+            "Octave + M6; A0-A8",
+            "Octave + m7; A0-A8",
+            "Octave + M7; A0-A8"
+        };
+
+        std::vector<double> n_intervals[NUM_SCALES] = { 
+            { 1.0, pow(2.0, 1.0/12.0) },    // m2
+            { 1.0, pow(2.0, 2.0/12.0) },    // M2
+            { 1.0, pow(2.0, 3.0/12.0) },    // m3
+            { 1.0, pow(2.0, 4.0/12.0) },    // M3
+            { 1.0, pow(2.0, 5.0/12.0) },    // P4
+            { 1.0, pow(2.0, 6.0/12.0) },    // d5
+            { 1.0, pow(2.0, 7.0/12.0) },    // P5
+            { 1.0, pow(2.0, 8.0/12.0) },    // m6
+            { 1.0, pow(2.0, 9.0/12.0) },    // M6
+            { 1.0, pow(2.0, 10.0/12.0) },   // m7
+            { 1.0, pow(2.0, 11.0/12.0) }    // M7
+        };
+
+        std::vector<std::string> n_intervals_str[NUM_SCALES] = { 
+            { "Oct", "m2" },  
+            { "Oct", "M2" },  
+            { "Oct", "m3" },  
+            { "Oct", "M3" },  
+            { "Oct", "P4" },  
+            { "Oct", "d5" },  
+            { "Oct", "P5" },  
+            { "Oct", "m6" },  
+            { "Oct", "M6" },  
+            { "Oct", "m7" },  
+            { "Oct", "M7" }      
+        };
+
+        std::vector<double> octaves {std::vector<double>(11, 2.0)}; 
+        std::vector<double> startFrequencies {std::vector<double>(11, start_freq)}; // A0
+
+        generateFrequencies(m, n_intervals, startFrequencies, octaves);
+        generateNames(m, n_intervals_str);
+
+        return m;
+
+    };
+
+};
+
 
 struct filter {
 
@@ -1342,7 +1471,13 @@ int main() {
     // generators.push_back(&ji_triad);
 
     ji_interval_generator ji_interval = {};
-    generators.push_back(&ji_interval);
+    // generators.push_back(&ji_interval);
+
+    et_triad_generator et_triad = {};
+    // generators.push_back(&et_triad);
+
+    et_interval_generator et_interval = {};
+    generators.push_back(&et_interval);
 
     maxq_filter maxq48 = {};
     maxq48.sampleRate = 48000;
