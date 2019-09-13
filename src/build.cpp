@@ -925,7 +925,7 @@ struct diatonicjust_generator : interval_generator {
 
 };
 
-struct diatoniceq_generator : interval_generator {
+struct diatoniceq_generator : generator {
 
     double rootA = 110.0;
 
@@ -992,6 +992,78 @@ struct diatoniceq_generator : interval_generator {
     };
 
 };
+
+struct et_chromatic_generator : generator {
+
+    double A = 13.75;
+    double baseE = A * pow(2.0, 7.0/12.0) * 4;
+    double baseAsharp =  A * pow(2.0, 1.0/12.0) * 8;
+
+    scale generateScale() override {
+
+        scale m;
+        m.classname = "et_chromatic";
+        m.name = "Whole Step (ET)";
+        m.description = "Chromatic Scale, Equal Temperament";
+        m.scalename = {
+            "E2-C4",
+            "A#2-F#4",
+            "E3-C5",
+            "A#3-F#5",
+            "E4-C6",
+            "A#4-F#6",
+            "E5-C7",
+            "A#5-F#7",
+            "E6-C8",
+            "A#6-F#8",
+            "E7-C9"
+        };
+
+        std::vector<std::string> n_intervals_str[NUM_SCALES] = { 
+            // { BP_intervals_str[3], BP_intervals_str[7],  BP_intervals_str[10] },
+            // { BP_intervals_str[3], BP_intervals_str[7],  BP_intervals_str[11] },
+            // { BP_intervals_str[4], BP_intervals_str[6],  BP_intervals_str[10] },
+            // { BP_intervals_str[4], BP_intervals_str[7],  BP_intervals_str[9] },
+            // { BP_intervals_str[4], BP_intervals_str[7],  BP_intervals_str[10] },
+            // { BP_intervals_str[4], BP_intervals_str[7],  BP_intervals_str[11] },
+            // { BP_intervals_str[6], BP_intervals_str[7],  BP_intervals_str[10] },
+            // { BP_intervals_str[6], BP_intervals_str[7],  BP_intervals_str[11] },
+            // { BP_intervals_str[6], BP_intervals_str[10], BP_intervals_str[11] },
+            // { BP_intervals_str[6], BP_intervals_str[8],  BP_intervals_str[12] },
+            // { BP_intervals_str[5], BP_intervals_str[9],  BP_intervals_str[12] }
+        };
+
+        std::vector<double> startFrequencies {
+            baseE,  //E2
+            baseAsharp, 
+            baseE * 2.0, //E3
+            baseAsharp * 2.0, 
+            baseE * 4.0, //E4
+            baseAsharp * 4.0, 
+            baseE * 8.0, //E5
+            baseAsharp * 8.0, 
+            baseE * 16.0, //E6
+            baseAsharp * 16.0, 
+            baseE * 32.0, // E7
+            baseAsharp * 32.0
+        }; 
+
+        for (int scaleIdx = 0; scaleIdx < NUM_SCALES; scaleIdx++) {
+            m.frequency[scaleIdx * NUM_FREQS] = startFrequencies[scaleIdx];
+
+            for (int noteIdx = 1; noteIdx < NUM_FREQS; noteIdx++) {
+                m.frequency[scaleIdx * NUM_FREQS + noteIdx] = 
+                    m.frequency[scaleIdx * NUM_FREQS + noteIdx - 1] * pow(2.0, 1.0/12.0);
+            }
+
+        }
+
+        return m;
+
+    };
+
+};
+
 
 
 struct filter {
@@ -1134,10 +1206,10 @@ int main() {
     // generators.push_back(&dia_just);
 
     diatoniceq_generator dia_et = {};
-    generators.push_back(&dia_et);
+    // generators.push_back(&dia_et);
 
-
-
+    et_chromatic_generator et_chromatic = {};
+    generators.push_back(&et_chromatic);
 
     maxq_filter maxq48 = {};
     maxq48.sampleRate = 48000;
