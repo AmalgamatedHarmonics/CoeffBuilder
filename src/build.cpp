@@ -925,6 +925,75 @@ struct diatonicjust_generator : interval_generator {
 
 };
 
+struct diatoniceq_generator : interval_generator {
+
+    double rootA = 110.0;
+
+    scale generateScale() override {
+
+        scale m;
+        m.classname = "et_wholestep";
+        m.name = "Whole Step (ET)";
+        m.description = "Whole Step scales, Equal Temperament";
+        m.scalename = {
+            "A2-B5",
+            "A5-B8",
+            "B2-C#5",
+            "B5-C#8",
+            "C2-D5",
+            "C5-D8",
+            "D2-E5",
+            "D5-E8",
+            "E2-F#5",
+            "E5-F#8",
+            "F4-G7"
+        };
+
+        std::vector<std::string> n_intervals_str[NUM_SCALES] = { 
+            // { BP_intervals_str[3], BP_intervals_str[7],  BP_intervals_str[10] },
+            // { BP_intervals_str[3], BP_intervals_str[7],  BP_intervals_str[11] },
+            // { BP_intervals_str[4], BP_intervals_str[6],  BP_intervals_str[10] },
+            // { BP_intervals_str[4], BP_intervals_str[7],  BP_intervals_str[9] },
+            // { BP_intervals_str[4], BP_intervals_str[7],  BP_intervals_str[10] },
+            // { BP_intervals_str[4], BP_intervals_str[7],  BP_intervals_str[11] },
+            // { BP_intervals_str[6], BP_intervals_str[7],  BP_intervals_str[10] },
+            // { BP_intervals_str[6], BP_intervals_str[7],  BP_intervals_str[11] },
+            // { BP_intervals_str[6], BP_intervals_str[10], BP_intervals_str[11] },
+            // { BP_intervals_str[6], BP_intervals_str[8],  BP_intervals_str[12] },
+            // { BP_intervals_str[5], BP_intervals_str[9],  BP_intervals_str[12] }
+        };
+
+        std::vector<double> startFrequencies {
+            rootA,
+            rootA * 8.0,
+            rootA * pow(2, 2.0/12.0),
+            rootA * pow(2, 2.0/12.0) * 8,
+            rootA * pow(2, 3.0/12.0),
+            rootA * pow(2, 3.0/12.0) * 8,
+            rootA * pow(2, 5.0/12.0),
+            rootA * pow(2, 5.0/12.0) * 8,
+            rootA * pow(2, 7.0/12.0),
+            rootA * pow(2, 7.0/12.0) * 8,
+            rootA * pow(2, 8.0/12.0)
+        }; 
+
+        for (int scaleIdx = 0; scaleIdx < NUM_SCALES; scaleIdx++) {
+            m.frequency[scaleIdx * NUM_FREQS] = startFrequencies[scaleIdx];
+
+            for (int noteIdx = 1; noteIdx < NUM_FREQS; noteIdx++) {
+                m.frequency[scaleIdx * NUM_FREQS + noteIdx] = 
+                    m.frequency[scaleIdx * NUM_FREQS + noteIdx - 1] * pow(2.0, 2.0/12.0);
+            }
+
+        }
+
+        return m;
+
+    };
+
+};
+
+
 struct filter {
 
     virtual std::string name() = 0;
@@ -1061,8 +1130,13 @@ int main() {
     indian_generator indian = {};
     // generators.push_back(&indian);
 
-    diatonicjust_generator dtjust = {};
-    generators.push_back(&dtjust);
+    diatonicjust_generator dia_just = {};
+    // generators.push_back(&dia_just);
+
+    diatoniceq_generator dia_et = {};
+    generators.push_back(&dia_et);
+
+
 
 
     maxq_filter maxq48 = {};
