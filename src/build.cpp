@@ -1,4 +1,5 @@
 #include <iostream>
+#include <iomanip>
 #include <string>
 #include <array>
 #include <vector>
@@ -1518,7 +1519,7 @@ struct maxq_filter : filter {
     int sampleRate = 96000;
 
     std::string name() override {
-        return "maxq/" + std::to_string(sampleRate);
+        return "maxq" + std::to_string(sampleRate);
     }
 
     std::vector<double> calculate(double frequency) override {
@@ -1540,7 +1541,7 @@ struct bpre_filter : filter {
     int sampleRate = 96000;
 
     std::string name() override {
-        return "bpre/" + std::to_string(sampleRate) + "/" + std::to_string(Qval) + "/" + std::to_string(gain_q);
+        return "bpre" + std::to_string(sampleRate) + "" + std::to_string(Qval) + "" + std::to_string(gain_q);
     }
 
     std::vector<double> calculate(double frequency) override {
@@ -1574,6 +1575,38 @@ struct bpre_filter : filter {
     }
 
 };
+
+void procCoeff(scale s, filter *filt, int idx, bool isLast) {
+    std::vector<double> coeffs = filt->generateCoeffs(s.frequency[idx]);
+    if (coeffs.size() == 1) {
+        if (isLast) {
+            std::cout << "\t\t" << coeffs[0] << std::endl;
+        } else {
+            std::cout << "\t\t" << coeffs[0] << "," << std::endl;
+        }
+    } else {
+        std::cout << "\t\t{ ";
+        for (int cidx = 0; cidx < coeffs.size() - 1; cidx++) {
+            std::cout << coeffs[cidx] << ", ";
+        }
+        if (isLast) {
+            std::cout << coeffs[coeffs.size() - 1] << " }";
+        } else {
+            std::cout << coeffs[coeffs.size() - 1] << " },";
+        }
+        std::cout << std::endl;
+    }
+}
+
+void procFilter(scale s, filter *filt) {
+    std::cout << std::setprecision(16);
+    std::cout << "\t.c_" << filt->name() << " = {" << std::endl;
+    for (int idx = 0; idx < 230; idx++) {
+        procCoeff(s, filt, idx, false);
+    }
+    procCoeff(s, filt, 230, true);
+    std::cout << "\t}" << std::endl;
+}
 
 int main() {
 
@@ -1675,28 +1708,38 @@ int main() {
     bpreHi96.sampleRate = 96000;
     filters.push_back(&bpreHi96);
 
+    std::cout << "#include \"Scales.hpp\"" << std::endl;
+
     for (auto g: generators) {
 
         scale s = g->generateScale();
 
-        for (int idx = 0; idx < 231; idx++) {
+        std::cout << "Scale " << s.classname << " = {" << std::endl;
+        std::cout << "\t.name = \"" << s.name << "\"," << std::endl;
+        std::cout << "\t.description = \"" << s.description << "\"," << std::endl;
+        std::cout << "\t.scalename = {" << std::endl;
 
-            int scale = idx / 21;
-
-            if (idx % 21 == 0) {
-                std::cout << "-- " << s.scalename[scale] <<  std::endl;
-            }
-
-            std::cout << "note " << std::to_string(idx) << " " << s.notename[idx] << " " <<  std::to_string(s.frequency[idx]) << std::endl;
-
-            for (auto filt: filters) {
-                std::vector<double> coeffs = filt->generateCoeffs(s.frequency[idx]);
-                std::cout << filt->name();
-                for (double c: coeffs) {
-                    std::cout << " " << c;
-                }
-                std::cout << std::endl;
-            }
+        for (int i = 0; i < s.scalename.size() - 1; i++) {
+            std::cout << "\t\t\"" << s.scalename[i] << "\"," << std::endl;
         }
+        std::cout << "\t\t\"" << s.scalename[s.scalename.size() - 1] << "\"}," << std::endl;
+
+        std::cout << "\t.notedesc = {" << std::endl;
+        for (int i = 0; i < s.notename.size() - 1; i++) {
+            std::cout << "\t\t\"" << s.notename[i] << "\"," << std::endl;
+        }
+        std::cout << "\t\t\"" << s.notename[s.notename.size() - 1] << "\"}," << std::endl;
+
+        procFilter(s, &maxq48);
+        procFilter(s, &maxq96);
+        procFilter(s, &bpreLo48);
+        procFilter(s, &bpreLo96);
+        procFilter(s, &bpreHi48);
+        procFilter(s, &bpreHi96);
+
+        std::cout << "};" << std::endl;
+
     }
+
 }
+
