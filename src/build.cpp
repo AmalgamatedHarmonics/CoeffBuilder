@@ -1321,6 +1321,164 @@ struct et_interval_generator : interval_generator {
 
 };
 
+struct et_major_generator : interval_generator {
+
+    double a0 = 440.0 / 16.0;
+    double c1 = a0 * (pow(2.0, 3.0/12.0)); // C1
+    double b3 = a0 * 8.0 * (pow(2.0, 2.0/12.0)); // b3
+    double a6 = a0 * 64.0;
+
+    scale generateScale() override {
+
+        scale m;
+        m.classname = "et_major";
+        m.name = "Major (ET)";
+        m.description = "Scales from C Major";
+        m.scalename = {
+            "Major chords; C1-",
+            "Major 6th chords; C2-",
+            "Major 7th chords; C2-",
+            "Augmented chords; C1-",
+            "Augmented 7th chords; C2-",
+            "Dominant 7th chords; C2-",
+            "Major Pentatonic; C1-",
+            "Major Pentatonic; C5-",
+            "Major scale; C1-",
+            "Major scale; C3-",
+            "Major scale; C6-"
+        };
+
+        std::vector<double> n_intervals[NUM_SCALES] = { 
+            { 1.0, pow(2.0, 4.0/12.0), pow(2.0, 7.0/12.0) },                        // Major:           O, M3, P5
+            { 1.0, pow(2.0, 4.0/12.0), pow(2.0, 7.0/12.0), pow(2.0, 9.0/12.0) },    // Major 6:         O, M3, P5, M6
+            { 1.0, pow(2.0, 4.0/12.0), pow(2.0, 7.0/12.0), pow(2.0, 11.0/12.0) },   // Major 7:         O, M3, P5, M7
+            { 1.0, pow(2.0, 4.0/12.0), pow(2.0, 8.0/12.0) },                        // Augmented:       O, M3, m6
+            { 1.0, pow(2.0, 4.0/12.0), pow(2.0, 8.0/12.0), pow(2.0, 11.0/12.0) },   // Augmented 7th:   O, M3, m6, M7
+            { 1.0, pow(2.0, 4.0/12.0), pow(2.0, 7.0/12.0), pow(2.0, 10.0/12.0) },   // Dominant 7th:    O, M3, P5, m7
+            { 1.0, pow(2.0, 2.0/12.0), pow(2.0, 4.0/12.0), pow(2.0, 7.0/12.0), pow(2.0, 9.0/12.0) },   // Major Pen:  O, M2, M3, P5, M6
+            { 1.0, pow(2.0, 2.0/12.0), pow(2.0, 4.0/12.0), pow(2.0, 7.0/12.0), pow(2.0, 9.0/12.0) },   // Major Pen:  O, M2, M3, P5, M6
+            { 1.0, pow(2.0, 2.0/12.0), pow(2.0, 4.0/12.0), pow(2.0, 5.0/12.0), pow(2.0, 7.0/12.0), pow(2.0, 9.0/12.0), pow(2.0, 11.0/12.0) },   // Major:  O, M2, M3, P4, P5, M6, M7
+            { 1.0, pow(2.0, 1.0/12.0), pow(2.0, 3.0/12.0), pow(2.0, 5.0/12.0), pow(2.0, 6.0/12.0), pow(2.0, 8.0/12.0), pow(2.0, 10.0/12.0) },   // Major:  Modified for overall with previous
+            { 1.0, pow(2.0, 2.0/12.0), pow(2.0, 3.0/12.0), pow(2.0, 5.0/12.0), pow(2.0, 7.0/12.0), pow(2.0, 8.0/12.0), pow(2.0, 10.0/12.0) },   // Major:  Modified for overall with previous
+        };
+
+        std::vector<std::string> n_intervals_str[NUM_SCALES] = { 
+            { "Oct", "M3", "P5" },  
+            { "Oct", "M3", "P5", "M6" },
+            { "Oct", "M3", "P5", "M7" },
+            { "Oct", "M3", "m6" },  
+            { "Oct", "M3", "m5", "M7" },  
+            { "Oct", "M3", "P5", "M7" },  
+            { "Oct", "M2", "M3", "P5", "M6" },  
+            { "Oct", "M2", "M3", "P5", "M6" },  
+            { "Oct", "M2", "M3", "P4", "P5", "M6", "M7" },  
+            { "M7", "Oct", "M2", "M3", "P4", "P5", "M6"},  
+            { "M6", "M7", "Oct", "M2", "M3", "P4", "P5"},  
+        };
+
+        std::vector<double> octaves {std::vector<double>(11, 2.0)}; 
+        std::vector<double> startFrequencies {
+            c1,         // C1
+            c1 * 2.0,   // C2
+            c1 * 2.0,   // C2
+            c1,         // C1
+            c1 * 2.0,   // C2
+            c1 * 2.0,   // C2
+            c1,         // C1
+            c1 * 16.0,  // C5
+            c1,         // C1
+            b3,         // B3
+            a6          // A6
+        }; 
+
+        generateFrequencies(m, n_intervals, startFrequencies, octaves);
+        generateNames(m, n_intervals_str);
+
+        return m;
+
+    };
+
+};
+
+struct et_minor_generator : interval_generator {
+
+    double a0 = 440.0 / 16.0;
+    double c1 = a0 * (pow(2.0, 3.0/12.0)); // C1
+    double b3 = a0 * 8.0 * (pow(2.0, 2.0/12.0)); // b3
+    double f4 = a0 * 8.0 * (pow(2.0, 8.0/12.0)); // f4
+    double gs6 = a0 * 32.0 * (pow(2.0, 11.0/12.0)); // gs6
+    
+    scale generateScale() override {
+
+        scale m;
+        m.classname = "et_minor";
+        m.name = "Minor (ET)";
+        m.description = "Scales from C Major";
+        m.scalename = {
+            "Minor chords",
+            "Minor 6th chords",
+            "Minor 7th chords",
+            "Half Diminished 7th chords",
+            "Minor Pentatonic; C1-",
+            "Minor Pentatonic; C5-",
+            "Blues scale; C1-",
+            "Blues scale; C4-",
+            "Harmonic Minor; C1-",
+            "Harmonic Minor; C3-",
+            "Harmonic Minor; C6-"
+        };
+
+        std::vector<double> n_intervals[NUM_SCALES] = { 
+            { 1.0, pow(2.0, 3.0/12.0), pow(2.0, 7.0/12.0) },                        // Minor:           O, m3, P5
+            { 1.0, pow(2.0, 3.0/12.0), pow(2.0, 7.0/12.0), pow(2.0, 8.0/12.0) },    // Minor 6:         O, m3, P5, m6
+            { 1.0, pow(2.0, 3.0/12.0), pow(2.0, 7.0/12.0), pow(2.0, 10.0/12.0) },   // Minor 7:         O, m3, P5, m7
+            { 1.0, pow(2.0, 3.0/12.0), pow(2.0, 4.0/12.0), pow(2.0, 10.0/12.0) },   // Half Dim 7th:    O, m3, M3, m7
+            { 1.0, pow(2.0, 3.0/12.0), pow(2.0, 5.0/12.0), pow(2.0, 7.0/12.0), pow(2.0, 10.0/12.0) },  // Minor Pen:  O, m3, P4, P5, m7
+            { 1.0, pow(2.0, 3.0/12.0), pow(2.0, 5.0/12.0), pow(2.0, 7.0/12.0), pow(2.0, 10.0/12.0) },  // Minor Pen:  O, m3, P4, P5, m7
+            { 1.0, pow(2.0, 3.0/12.0), pow(2.0, 5.0/12.0), pow(2.0, 6.0/12.0), pow(2.0, 7.0/12.0), pow(2.0, 10.0/12.0) },  // Blues:  O, m3, P4, d5, P5, m7
+            { 1.0, pow(2.0, 1.0/12.0), pow(2.0, 2.0/12.0), pow(2.0, 5.0/12.0), pow(2.0, 7.0/12.0), pow(2.0, 10.0/12.0) },  // Blues:  O, m3, P4, d5, P5, m7 1OK 2OK
+            { 1.0, pow(2.0, 2.0/12.0), pow(2.0, 3.0/12.0), pow(2.0, 5.0/12.0), pow(2.0, 7.0/12.0), pow(2.0, 8.0/12.0), pow(2.0, 11.0/12.0) },   // HMinor:  O, M2, m3, P4, P5, m6, M7
+            { 1.0, pow(2.0, 1.0/12.0), pow(2.0, 3.0/12.0), pow(2.0, 4.0/12.0), pow(2.0, 6.0/12.0), pow(2.0, 8.0/12.0), pow(2.0, 9.0/12.0) },   // HMinor: Modified for overall with previous
+            { 1.0, pow(2.0, 3.0/12.0), pow(2.0, 4.0/12.0), pow(2.0, 6.0/12.0), pow(2.0, 7.0/12.0), pow(2.0, 9.0/12.0), pow(2.0, 11.0/12.0) },   // HMinor: Modified for overall with previous
+        };
+
+        std::vector<std::string> n_intervals_str[NUM_SCALES] = { 
+            { "Oct", "m3", "P5" },  
+            { "Oct", "m3", "P5", "m6" },
+            { "Oct", "m3", "P5", "m7" },
+            { "Oct", "m3", "M4", "m7" },  
+            { "Oct", "m3", "P4", "P4", "m7" },  
+            { "Oct", "m3", "P4", "P4", "m7" },  
+            { "Oct", "M2", "M3", "P5", "d5", "M6" },  
+            { "M3", "P5", "d5", "M6", "Oct", "M2" },  
+            { "Oct", "M2", "m3", "P4", "P5", "m6", "M7" },  
+            { "M7", "Oct", "M2", "m3", "P4", "P5", "m6" },  
+            { "m6", "M7", "Oct", "M2", "m3", "P4", "P5" }
+        };
+
+        std::vector<double> octaves {std::vector<double>(11, 2.0)}; 
+        std::vector<double> startFrequencies {
+            c1,         // C1
+            c1 * 2.0,   // C2
+            c1 * 2.0,   // C2
+            c1 * 2.0,   // C2
+            c1,         // C1
+            c1 * 16.0,  // C5
+            c1,         // C1
+            f4,         // f4
+            c1,         // C1
+            b3,         // B3
+            gs6         // G#6
+        }; 
+
+        generateFrequencies(m, n_intervals, startFrequencies, octaves);
+        generateNames(m, n_intervals_str);
+
+        return m;
+
+    };
+
+};
 
 struct filter {
 
@@ -1423,61 +1581,67 @@ int main() {
     std::vector<filter *> filters;
 
     video_generator video = {};
-    // generators.push_back(&video);
+    generators.push_back(&video);
 
     bp_generator bp = {};
-    // generators.push_back(&bp);
+    generators.push_back(&bp);
 
     gamelan_generator gamelan = {};
-    // generators.push_back(&gamelan);
+    generators.push_back(&gamelan);
 
     b296_generator b296 = {};
-    // generators.push_back(&b296);
+    generators.push_back(&b296);
 
     shrutis_generator shrutis = {};
-    // generators.push_back(&shrutis);
+    generators.push_back(&shrutis);
 
     mesopotamian_generator mesopotamian = {};
-    // generators.push_back(&mesopotamian);
+    generators.push_back(&mesopotamian);
 
     alphaspread1_generator alpha1 = {};
-    // generators.push_back(&alpha1);
+    generators.push_back(&alpha1);
 
     alphaspread2_generator alpha2 = {};
-    // generators.push_back(&alpha2);
+    generators.push_back(&alpha2);
 
     gammaspread_generator gamma_spread = {};
-    // generators.push_back(&gamma_spread);
+    generators.push_back(&gamma_spread);
 
     gamma_generator gamma = {};
-    // generators.push_back(&gamma);
+    generators.push_back(&gamma);
     
     et17_generator et17 = {};
-    // generators.push_back(&et17);
+    generators.push_back(&et17);
 
     indian_generator indian = {};
-    // generators.push_back(&indian);
+    generators.push_back(&indian);
 
     diatonicjust_generator dia_just = {};
-    // generators.push_back(&dia_just);
+    generators.push_back(&dia_just);
 
     diatoniceq_generator dia_et = {};
-    // generators.push_back(&dia_et);
+    generators.push_back(&dia_et);
 
     et_chromatic_generator et_chromatic = {};
-    // generators.push_back(&et_chromatic);
+    generators.push_back(&et_chromatic);
 
     ji_triad_generator ji_triad = {};
-    // generators.push_back(&ji_triad);
+    generators.push_back(&ji_triad);
 
     ji_interval_generator ji_interval = {};
-    // generators.push_back(&ji_interval);
+    generators.push_back(&ji_interval);
 
     et_triad_generator et_triad = {};
-    // generators.push_back(&et_triad);
+    generators.push_back(&et_triad);
 
     et_interval_generator et_interval = {};
     generators.push_back(&et_interval);
+
+    et_major_generator et_major = {};
+    generators.push_back(&et_major);
+
+    et_minor_generator et_minor = {};
+    generators.push_back(&et_minor);
 
     maxq_filter maxq48 = {};
     maxq48.sampleRate = 48000;
@@ -1525,14 +1689,14 @@ int main() {
 
             std::cout << "note " << std::to_string(idx) << " " << s.notename[idx] << " " <<  std::to_string(s.frequency[idx]) << std::endl;
 
-            // for (auto filt: filters) {
-            //     std::vector<double> coeffs = filt->generateCoeffs(s.frequency[idx]);
-            //     std::cout << filt->name();
-            //     for (double c: coeffs) {
-            //         std::cout << " " << c;
-            //     }
-            //     std::cout << std::endl;
-            // }
+            for (auto filt: filters) {
+                std::vector<double> coeffs = filt->generateCoeffs(s.frequency[idx]);
+                std::cout << filt->name();
+                for (double c: coeffs) {
+                    std::cout << " " << c;
+                }
+                std::cout << std::endl;
+            }
         }
     }
 }
