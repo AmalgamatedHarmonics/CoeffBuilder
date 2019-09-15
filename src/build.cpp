@@ -1,4 +1,6 @@
 #include <iostream>
+#include <fstream>
+#include <iostream>
 #include <iomanip>
 #include <string>
 #include <array>
@@ -16,6 +18,7 @@ const double PI  = 3.141592653589793238463;
 
 struct scale {
 
+    std::string filename;
     std::string classname;
     std::string name;
     std::string description;
@@ -105,6 +108,7 @@ struct video_generator : generator {
     scale generateScale() override {
         scale m;
         m.classname = "video_notused";
+        m.filename = "Video_notused.cpp";
         m.name = "Video";
         m.description = "Scales derived from the NTSC frame rate of 59.94Hz, each note is the next multiple of base frequency. This is not used in SMR";
         m.scalename = {
@@ -216,6 +220,7 @@ struct bp_generator : interval_generator {
 
         scale m;
         m.classname = "bohlenpierce";
+        m.filename = "BP.cpp";
         m.name = "Bohlen Pierce";
         m.description = "The Bohlen Pierce scale is derived from 13 divisions of a 'tritave' - a frequency ratio of 3:1, compared to the octave ratio of 2:1. Here the scale consists of various intervals taken from an justly intonation scale.";
         m.scalename = {
@@ -247,6 +252,7 @@ struct gamelan_generator : interval_generator {
 
         scale m;
         m.classname = "gamelan";
+        m.filename = "Gamelan.cpp";
         m.name = "Gamelan Pelog";
         m.description = "Gamelan tunings in C.";
         m.scalename = {
@@ -324,6 +330,7 @@ struct b296_generator : generator {
     scale generateScale() override {
         scale m;
         m.classname = "buchla296";
+        m.filename = "Buchla296.cpp";
         m.name = "Buchla 296 EQ";
         m.description = "Frequencies from the Buchla 296 EQ module. Each scale is shifted up 50 cents from previous scale.";
         m.scalename = {
@@ -408,6 +415,7 @@ struct shrutis_generator : generator {
     scale generateScale() override {
         scale m;
         m.classname = "indian_shrutis";
+        m.filename = "Indian_Shrutis.cpp";
         m.name = "Indian Shrutis";
         m.description = "In Indian classical music, a shruti is smallest interval or pitch that the human ear can detect and a singer or musical instrument can produce. These are 22 pitches in an octave, the most consonant of which form the 7 notes of the basic scale. Since SMR allows only 21 notes in a scale, the first note of Ri (256:243) is omitted.";
         m.scalename = {
@@ -458,6 +466,7 @@ struct mesopotamian_generator : interval_generator {
 
         scale m;
         m.classname = "mesopotamian";
+        m.filename = "Mesopotamian.cpp";
         m.name = "Mesopotamian";
         m.description = "The Mesopotamian tuning systems have reconstructed from cuneiform tablet from the Sumerian civilisation describing a Babylonian harp. The original work was made in 1960-70s by Duchesne-Guillemin, Kilmer, Gurney and Wulstan deriving a heptatonic ascending scale. Subsequent work by Vitale and Dumbrill indicated that a descending scale was used. The reader is referred to 'NEW LIGHT ON THE BABYLONIAN TONAL SYSTEM, Leon Crickmore for an up-to-date summary of the discussion. Here the module used a Pythagorian tuning and step size suggested by West in THE BABYLONIAN MUSICAL NOTATION AND THE HURRIAN MELODIC TEXTS, p164. The frequencies have been recalculated using more accurate frequency ratios.";
         m.scalename = {
@@ -547,6 +556,7 @@ struct alphaspread1_generator : wcspread_generator {
 
         scale m;
         m.classname = "wc_alpha1";
+        m.filename = "WC_Alpha1.cpp";        
         m.name = "Alpha Spread 1";
         m.description = "Omitting the octave, Wendy Carlos' Alpha scale is a based on a fixed interval size whose multiples approximate justly intonated intervals. Here the step size is 78 cents - 9 divisions of the perfect fifth, or the minor third in four steps. This scale is constructed from ascending pairs of intervals.";
         m.scalename = {
@@ -594,6 +604,7 @@ struct alphaspread2_generator : wcspread_generator {
 
         scale m;
         m.classname = "wc_alpha2";
+        m.filename = "WC_Alpha2.cpp";        
         m.name = "Alpha Spread 2";
         m.description = "Omitting the octave, Wendy Carlos' Alpha scale is a based on a fixed interval size whose multiples approximate justly intonated intervals. Here the step size is 78 cents - 9 divisions of the perfect fifth, or the minor third in four steps. This scale is constructed from ascending pairs of intervals.";
         m.scalename = {
@@ -643,6 +654,7 @@ struct gammaspread_generator : wcspread_generator {
 
         scale m;
         m.classname = "wc_gamma";
+        m.filename = "WC_Gamma.cpp";        
         m.name = "Gamma Spread";
         m.description = "Like the Alpha scale, Wendy Carlos' Gamma scale is based on a fixed interval size whose multiples approximate justly intonated intervals. Here the step size is 35 cents; 20 divisions of the perfect fifth. This scale consists of ascending pairs of intervals.";
         m.scalename = {
@@ -676,6 +688,7 @@ struct gamma_generator : generator {
     scale generateScale() override {
         scale m;
         m.classname = "gamma_notused";
+        m.filename = "WC_Gamma_notused.cpp";        
         m.name = "Gamma";
         m.description = "Like the Alpha scale, Wendy Carlos' Gamma scale is based on a fixed interval size whose multiples approximate justly intonated intervals. Here the step size is 35 cents which is 20 divisions of the perfect fifth. The notes are consequetively arranged starting at 120Hz. This scale is not used in SMR";
         m.scalename = {
@@ -718,6 +731,7 @@ struct et17_generator : generator {
     scale generateScale() override {
         scale m;
         m.classname = "seventeen";
+        m.filename = "Seventeen.cpp";        
         m.name = "17 TET";
         m.description = "17 notes per octave, Equal temperament. Scales are arranged consecutively from 13.75Hz to 20kHz";
         m.scalename = {
@@ -758,6 +772,7 @@ struct indian_generator : interval_generator {
 
         scale m;
         m.classname = "indian_penta";
+        m.filename = "Indian_Penta.cpp";        
         m.name = "Indian Classical";
         m.description = "The Indian Classical scale contains 12 notes, seven of which form the basic notes - Svara - Sa, Ri/Re, Ga, Ma, Pa, Dha, Ni. Unlike the western tradition, the scale uses just intonation and lacks a reference concert pitch, so these notes are similar although not identical in concept to solfege; the pitch of Sa is used as a reference for the other notes in performance. All notes have several acceptable frequency ratios except Sa and Pa (which are always 1:1 and 3:2). The full set of 22 allowed pitches are the Shrutis. The ratios used in SMR co-incide with 'Ptolemy's intense diatonic scale' in increasing octaves of E. Scales 8 to 11 are selections from  Scale 11 is a repeat of Scale 10. SMR describes this scale as pentatonic, which it is not.";
         m.scalename = {
@@ -857,6 +872,7 @@ struct diatonicjust_generator : interval_generator {
 
         scale m;
         m.classname = "ji_wholestep";
+        m.filename = "JI_Wholestep.cpp";        
         m.name = "Whole Step (JI)";
         m.description = "Whole Step scales, Just Intonation";
         m.scalename = {
@@ -934,6 +950,7 @@ struct diatoniceq_generator : generator {
 
         scale m;
         m.classname = "et_wholestep";
+        m.filename = "ET_Wholestep.cpp";        
         m.name = "Whole Step (ET)";
         m.description = "Whole Step scales, Equal Temperament";
         m.scalename = {
@@ -1004,6 +1021,7 @@ struct et_chromatic_generator : generator {
 
         scale m;
         m.classname = "et_chromatic";
+        m.filename = "ET_Chromatic.cpp";        
         m.name = "Whole Step (ET)";
         m.description = "Chromatic Scale, Equal Temperament";
         m.scalename = {
@@ -1073,6 +1091,7 @@ struct ji_triad_generator : interval_generator {
 
         scale m;
         m.classname = "ji_triads";
+        m.filename = "JI_Triad.cpp";        
         m.name = "Triads (JI)";
         m.description = "Western triads in G, Just Intonation. G1 is defined as a perfect fifth above C1=32.7Hz";
         m.scalename = {
@@ -1137,6 +1156,7 @@ struct ji_interval_generator : interval_generator {
 
         scale m;
         m.classname = "ji_intervals";
+        m.filename = "JI_Intervals.cpp";        
         m.name = "Intervals (JI)";
         m.description = "Single western intervals in A, Just Intonation. A0 is defined as a major sixth above C0=16.35Hz";
         m.scalename = {
@@ -1202,6 +1222,7 @@ struct et_triad_generator : interval_generator {
 
         scale m;
         m.classname = "et_triads";
+        m.filename = "ET_Triad.cpp";        
         m.name = "Triads (ET)";
         m.description = "Western triads in G, Equal Temperament";
         m.scalename = {
@@ -1266,6 +1287,7 @@ struct et_interval_generator : interval_generator {
 
         scale m;
         m.classname = "et_intervals";
+        m.filename = "ET_Intervals.cpp";        
         m.name = "Intervals (ET)";
         m.description = "Single western intervals in A, Equal Temperament";
         m.scalename = {
@@ -1333,6 +1355,7 @@ struct et_major_generator : interval_generator {
 
         scale m;
         m.classname = "et_major";
+        m.filename = "ET_Major.cpp";        
         m.name = "Major (ET)";
         m.description = "Scales from C Major";
         m.scalename = {
@@ -1413,6 +1436,7 @@ struct et_minor_generator : interval_generator {
 
         scale m;
         m.classname = "et_minor";
+        m.filename = "ET_Minor.cpp";        
         m.name = "Minor (ET)";
         m.description = "Scales from C Major";
         m.scalename = {
@@ -1481,6 +1505,61 @@ struct et_minor_generator : interval_generator {
 
 };
 
+struct userscale_generator : generator {
+
+    double start_freq = 320.0;
+
+    scale generateScale() override {
+
+        scale m;
+        m.classname = "userscale";
+        m.filename = "UserScale.cpp";        
+        m.name = "User Scale";
+        m.description = "The default notes of this scale are chromatic notes from a 12-TET scale starting at 320Hz.";
+        m.scalename = {
+            "User Scale 1",
+            "User Scale 2",
+            "User Scale 3",
+            "User Scale 4",
+            "User Scale 5",
+            "User Scale 6",
+            "User Scale 7",
+            "User Scale 8",
+            "User Scale 9",
+            "User Scale 10",
+            "User Scale 11"
+        };
+
+        std::vector<std::string> n_intervals_str[NUM_SCALES] = { 
+            // { BP_intervals_str[3], BP_intervals_str[7],  BP_intervals_str[10] },
+            // { BP_intervals_str[3], BP_intervals_str[7],  BP_intervals_str[11] },
+            // { BP_intervals_str[4], BP_intervals_str[6],  BP_intervals_str[10] },
+            // { BP_intervals_str[4], BP_intervals_str[7],  BP_intervals_str[9] },
+            // { BP_intervals_str[4], BP_intervals_str[7],  BP_intervals_str[10] },
+            // { BP_intervals_str[4], BP_intervals_str[7],  BP_intervals_str[11] },
+            // { BP_intervals_str[6], BP_intervals_str[7],  BP_intervals_str[10] },
+            // { BP_intervals_str[6], BP_intervals_str[7],  BP_intervals_str[11] },
+            // { BP_intervals_str[6], BP_intervals_str[10], BP_intervals_str[11] },
+            // { BP_intervals_str[6], BP_intervals_str[8],  BP_intervals_str[12] },
+            // { BP_intervals_str[5], BP_intervals_str[9],  BP_intervals_str[12] }
+        };
+
+        for (int scaleIdx = 0; scaleIdx < NUM_SCALES; scaleIdx++) {
+            m.frequency[scaleIdx * NUM_FREQS] = start_freq;
+
+            for (int noteIdx = 1; noteIdx < NUM_FREQS; noteIdx++) {
+                m.frequency[scaleIdx * NUM_FREQS + noteIdx] = 
+                    m.frequency[scaleIdx * NUM_FREQS + noteIdx - 1] * pow(2.0, 1.0/12.0);
+            }
+        }
+
+        return m;
+
+    };
+
+};
+
+
 struct filter {
 
     virtual std::string name() = 0;
@@ -1541,7 +1620,7 @@ struct bpre_filter : filter {
     int sampleRate = 96000;
 
     std::string name() override {
-        return "bpre" + std::to_string(sampleRate) + "" + std::to_string(Qval) + "" + std::to_string(gain_q);
+        return "bpre" + std::to_string(sampleRate) + "" + std::to_string(Qval) + "" + std::to_string((int)gain_q);
     }
 
     std::vector<double> calculate(double frequency) override {
@@ -1576,36 +1655,40 @@ struct bpre_filter : filter {
 
 };
 
-void procCoeff(scale s, filter *filt, int idx, bool isLast) {
+void procCoeff(std::ostream &f, scale s, filter *filt, int idx, bool isLast) {
     std::vector<double> coeffs = filt->generateCoeffs(s.frequency[idx]);
     if (coeffs.size() == 1) {
         if (isLast) {
-            std::cout << "\t\t" << coeffs[0] << std::endl;
+            f << "\t\t" << coeffs[0] << std::endl;
         } else {
-            std::cout << "\t\t" << coeffs[0] << "," << std::endl;
+            f << "\t\t" << coeffs[0] << "," << std::endl;
         }
     } else {
-        std::cout << "\t\t{ ";
+        f << "\t\t{ ";
         for (int cidx = 0; cidx < coeffs.size() - 1; cidx++) {
-            std::cout << coeffs[cidx] << ", ";
+            f << coeffs[cidx] << ", ";
         }
         if (isLast) {
-            std::cout << coeffs[coeffs.size() - 1] << " }";
+            f << coeffs[coeffs.size() - 1] << " }";
         } else {
-            std::cout << coeffs[coeffs.size() - 1] << " },";
+            f << coeffs[coeffs.size() - 1] << " },";
         }
-        std::cout << std::endl;
+        f << std::endl;
     }
 }
 
-void procFilter(scale s, filter *filt) {
-    std::cout << std::setprecision(16);
-    std::cout << "\t.c_" << filt->name() << " = {" << std::endl;
+void procFilter(std::ostream &f, scale s, filter *filt, bool isLast = false) {
+    f << std::setprecision(16);
+    f << "\t.c_" << filt->name() << " = {" << std::endl;
     for (int idx = 0; idx < 230; idx++) {
-        procCoeff(s, filt, idx, false);
+        procCoeff(f, s, filt, idx, false);
     }
-    procCoeff(s, filt, 230, true);
-    std::cout << "\t}" << std::endl;
+    procCoeff(f, s, filt, 230, true);
+    if (isLast) {
+        f << "\t}" << std::endl;
+    } else {
+        f << "\t}," << std::endl;
+    }
 }
 
 int main() {
@@ -1676,6 +1759,9 @@ int main() {
     et_minor_generator et_minor = {};
     generators.push_back(&et_minor);
 
+    userscale_generator user = {};
+    generators.push_back(&user);
+    
     maxq_filter maxq48 = {};
     maxq48.sampleRate = 48000;
     filters.push_back(&maxq48);
@@ -1708,36 +1794,42 @@ int main() {
     bpreHi96.sampleRate = 96000;
     filters.push_back(&bpreHi96);
 
-    std::cout << "#include \"Scales.hpp\"" << std::endl;
 
     for (auto g: generators) {
 
         scale s = g->generateScale();
 
-        std::cout << "Scale " << s.classname << " = {" << std::endl;
-        std::cout << "\t.name = \"" << s.name << "\"," << std::endl;
-        std::cout << "\t.description = \"" << s.description << "\"," << std::endl;
-        std::cout << "\t.scalename = {" << std::endl;
+		std::ofstream scaleFile;
+        scaleFile.open(s.filename);
+
+        scaleFile << "#include \"Scales.hpp\"" << std::endl;
+
+        scaleFile << "Scale " << s.classname << " = {" << std::endl;
+        scaleFile << "\t.name = \"" << s.name << "\"," << std::endl;
+        scaleFile << "\t.description = \"" << s.description << "\"," << std::endl;
+        scaleFile << "\t.scalename = {" << std::endl;
 
         for (int i = 0; i < s.scalename.size() - 1; i++) {
-            std::cout << "\t\t\"" << s.scalename[i] << "\"," << std::endl;
+            scaleFile << "\t\t\"" << s.scalename[i] << "\"," << std::endl;
         }
-        std::cout << "\t\t\"" << s.scalename[s.scalename.size() - 1] << "\"}," << std::endl;
+        scaleFile << "\t\t\"" << s.scalename[s.scalename.size() - 1] << "\"}," << std::endl;
 
-        std::cout << "\t.notedesc = {" << std::endl;
+        scaleFile << "\t.notedesc = {" << std::endl;
         for (int i = 0; i < s.notename.size() - 1; i++) {
-            std::cout << "\t\t\"" << s.notename[i] << "\"," << std::endl;
+            scaleFile << "\t\t\"" << s.notename[i] << "\"," << std::endl;
         }
-        std::cout << "\t\t\"" << s.notename[s.notename.size() - 1] << "\"}," << std::endl;
+        scaleFile << "\t\t\"" << s.notename[s.notename.size() - 1] << "\"}," << std::endl;
 
-        procFilter(s, &maxq48);
-        procFilter(s, &maxq96);
-        procFilter(s, &bpreLo48);
-        procFilter(s, &bpreLo96);
-        procFilter(s, &bpreHi48);
-        procFilter(s, &bpreHi96);
+        procFilter(scaleFile, s, &maxq48);
+        procFilter(scaleFile, s, &maxq96);
+        procFilter(scaleFile, s, &bpreLo48);
+        procFilter(scaleFile, s, &bpreLo96);
+        procFilter(scaleFile, s, &bpreHi48);
+        procFilter(scaleFile, s, &bpreHi96, true);
 
-        std::cout << "};" << std::endl;
+        scaleFile << "};" << std::endl;
+
+      scaleFile.close();
 
     }
 
